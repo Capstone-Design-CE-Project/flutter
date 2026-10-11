@@ -20,7 +20,6 @@ class AppSpacing {
 class MockData {
   static const String counselorId = "admin";
   static const String counselorPassword = "1234";
-  static const String seniorPin = "1234";
 }
 
 // 텍스트 상수

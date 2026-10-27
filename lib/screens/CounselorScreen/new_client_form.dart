@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../api/api_service.dart';
-import '../../api/consultation_model.dart';
 import '../../widgets/device_clock.dart';
 
 void main() {
@@ -66,15 +64,18 @@ class _NewClientFormState extends State<NewClientForm> {
     }
 
     setState(() => _isSaving = true);
-    late final ClientDetail client;
+    final memo = _memoController.text.trim();
     try {
-      client = await _apiService.createClient(
+      // 메모도 함께 서버에 저장한다. 기기에만 두면 상담사가 기기를 바꿨을 때
+      // 사라지고 다른 상담사와 공유되지 않는다.
+      await _apiService.createClient(
         name: name,
         age: age,
         gender: _gender,
         phone: _phoneController.text.trim().isEmpty
             ? null
             : _phoneController.text.trim(),
+        memo: memo.isEmpty ? null : memo,
       );
     } catch (error) {
       if (!mounted) return;
@@ -84,30 +85,8 @@ class _NewClientFormState extends State<NewClientForm> {
     }
 
     if (!mounted) return;
-    final memo = _memoController.text.trim();
-    String? memoSaveError;
-    if (memo.isNotEmpty) {
-      try {
-        final preferences = await SharedPreferences.getInstance();
-        final saved = await preferences.setString(
-          'client.memo.${client.id}',
-          memo,
-        );
-        if (!saved) {
-          throw StateError('메모를 기기에 저장하지 못했습니다.');
-        }
-      } catch (error) {
-        memoSaveError = error.toString().replaceFirst('Exception: ', '');
-      }
-    }
-
-    if (!mounted) return;
     setState(() => _isSaving = false);
-    Navigator.of(context).pop(
-      memoSaveError == null
-          ? '내담자를 등록했습니다.'
-          : '내담자는 등록했지만 메모를 기기에 저장하지 못했습니다: $memoSaveError',
-    );
+    Navigator.of(context).pop('내담자를 등록했습니다.');
   }
 
   void _showMessage(String message) {

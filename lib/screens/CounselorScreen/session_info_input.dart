@@ -35,9 +35,20 @@ class _SessionInfoInputV3State extends State<SessionInfoInputV3> {
     return _apiService.getClientDetail(clientId);
   }
 
+  /// 상담 메모는 서버(ClientDetail.memo)가 기준이다.
+  /// 서버에 값이 없으면, 이전 버전에서 기기에만 저장해 둔 메모를 보여준다.
   Future<String?> _loadLocalMemo() async {
     final clientId = widget.clientId;
     if (clientId == null || clientId <= 0) return null;
+
+    try {
+      final client = await _clientFuture;
+      final serverMemo = client.memo?.trim();
+      if (serverMemo != null && serverMemo.isNotEmpty) return serverMemo;
+    } catch (_) {
+      // 내담자 조회 실패는 위쪽 FutureBuilder 가 따로 처리한다.
+    }
+
     final preferences = await SharedPreferences.getInstance();
     return preferences.getString('client.memo.$clientId');
   }

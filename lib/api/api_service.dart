@@ -2,12 +2,24 @@ import 'package:dio/dio.dart';
 import 'consultation_model.dart';
 
 class ApiService {
-  ApiService({String baseUrl = 'http://3.36.70.79:8000', Dio? dio})
+  /// 서버 주소. 빌드할 때 --dart-define 으로 바꿀 수 있다.
+  ///
+  ///   flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000   (Android 에뮬레이터)
+  ///   flutter run --dart-define=API_BASE_URL=http://localhost:8000  (iOS 시뮬레이터)
+  ///   flutter run --dart-define=API_BASE_URL=http://192.168.0.5:8000 (실제 기기)
+  ///
+  /// 아무것도 주지 않으면 아래 운영 서버 주소를 쓴다.
+  static const String defaultBaseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'http://3.36.70.79:8000',
+  );
+
+  ApiService({String? baseUrl, Dio? dio})
     : _dio =
           dio ??
           Dio(
             BaseOptions(
-              baseUrl: baseUrl,
+              baseUrl: baseUrl ?? defaultBaseUrl,
               connectTimeout: const Duration(seconds: 10),
               receiveTimeout: const Duration(minutes: 5),
               headers: {'Content-Type': 'application/json'},

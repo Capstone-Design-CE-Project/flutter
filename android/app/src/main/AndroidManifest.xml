@@ -1,8 +1,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 백엔드 API 통신에 필요. 이 줄이 없으면 release 빌드에서 모든 요청이 실패한다
+         (debug/profile manifest 에만 선언돼 있으면 디버그 빌드에서만 동작). -->
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
     <application
         android:label="flutter_application_1"
+        android:usesCleartextTraffic="true"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

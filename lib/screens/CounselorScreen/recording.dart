@@ -151,7 +151,9 @@ class _RecordingV3State extends State<RecordingV3> {
     if (_isBusy || (!_isRecording && !_isPaused)) return;
     setState(() => _isBusy = true);
 
-    final confirmed = await Navigator.of(context).pushNamed<bool>(
+    // 라우트가 PageRouteBuilder<dynamic> 로 생성되므로 타입 인자를 주면
+    // web(DDC)/release 에서 TypeError 가 난다. 결과는 == true 로만 판단한다.
+    final Object? confirmed = await Navigator.of(context).pushNamed(
       PrototypeRoutes.sessionEnd,
       arguments: PrototypeRouteArguments(
         transition: FlowTransition.fade,

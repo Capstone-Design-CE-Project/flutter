@@ -69,12 +69,14 @@ class _ClientListState extends State<ClientList> {
   }
 
   Future<void> _openNewClientForm() async {
-    final result = await Navigator.of(context).pushNamed<String>(
+    // 라우트가 PageRouteBuilder<dynamic> 이라 pushNamed<String> 은 TypeError.
+    final Object? popped = await Navigator.of(context).pushNamed(
       PrototypeRoutes.newClient,
       arguments: const PrototypeRouteArguments(
         transition: FlowTransition.slide,
       ),
     );
+    final result = popped is String ? popped : null;
     if (!mounted || result == null) return;
 
     await _fetchClients(reset: true);

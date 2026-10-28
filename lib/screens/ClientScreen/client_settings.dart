@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 
+import '../../api/api_service.dart';
+import '../../api/client_session.dart';
+import '../../auth/auth_session.dart';
 import '../../config/app_settings.dart';
 import '../../navigation/prototype_routes.dart';
 import '../../widgets/device_clock.dart';
 
 class ClientsettingsWidget extends StatelessWidget {
-  const ClientsettingsWidget({super.key});
+  const ClientsettingsWidget({required this.authSession, super.key});
+
+  final AuthSession authSession;
 
   Future<void> _apply(
     BuildContext context,
@@ -19,6 +24,34 @@ class ClientsettingsWidget extends StatelessWidget {
         context,
       ).showSnackBar(SnackBar(content: Text('설정을 저장하지 못했습니다: $error')));
     }
+  }
+
+  Future<void> _logout(BuildContext context) async {
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('로그아웃'),
+        content: const Text('로그아웃하시겠습니까?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('취소'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('로그아웃'),
+          ),
+        ],
+      ),
+    );
+    if (shouldLogout != true || !context.mounted) return;
+
+    ApiService().clearAuthToken();
+    ClientSession.clear();
+    authSession.signOut();
+    Navigator.of(
+      context,
+    ).pushNamedAndRemoveUntil(PrototypeRoutes.clientLogin, (route) => false);
   }
 
   @override
@@ -151,6 +184,17 @@ class ClientsettingsWidget extends StatelessWidget {
                         value: settings.isHapticEnabled,
                         onChanged: (value) =>
                             _apply(context, () => settings.toggleHaptic(value)),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    OutlinedButton.icon(
+                      onPressed: () => _logout(context),
+                      icon: const Icon(Icons.logout),
+                      label: const Text('로그아웃'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFFB42318),
+                        side: const BorderSide(color: Color(0xFFB42318)),
+                        minimumSize: const Size.fromHeight(52),
                       ),
                     ),
                     const SizedBox(height: 16),

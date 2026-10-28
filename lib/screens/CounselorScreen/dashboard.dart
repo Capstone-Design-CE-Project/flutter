@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 
 import '../../api/api_service.dart';
 import '../../api/consultation_model.dart';
+import '../../auth/auth_session.dart';
 import '../../navigation/prototype_routes.dart';
 import '../../widgets/device_clock.dart';
 
 class DashboardWidget extends StatefulWidget {
-  const DashboardWidget({super.key});
+  const DashboardWidget({required this.authSession, super.key});
+
+  final AuthSession authSession;
 
   @override
   State<DashboardWidget> createState() => _DashboardWidgetState();
@@ -24,6 +27,33 @@ class _DashboardWidgetState extends State<DashboardWidget> {
 
   void _retry() {
     setState(() => _dashboardFuture = _apiService.getDashboard());
+  }
+
+  Future<void> _logout() async {
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('로그아웃'),
+        content: const Text('로그아웃하시겠습니까?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('취소'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('로그아웃'),
+          ),
+        ],
+      ),
+    );
+    if (shouldLogout != true || !mounted) return;
+
+    _apiService.clearAuthToken();
+    widget.authSession.signOut();
+    Navigator.of(
+      context,
+    ).pushNamedAndRemoveUntil(PrototypeRoutes.counselorLogin, (route) => false);
   }
 
   @override
@@ -92,6 +122,14 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                               child: Icon(
                                 Icons.person_outline,
                                 color: Color(0xFFFF6B53),
+                              ),
+                            ),
+                            IconButton(
+                              onPressed: _logout,
+                              tooltip: '로그아웃',
+                              icon: const Icon(
+                                Icons.logout,
+                                color: Color(0xFF1A2B49),
                               ),
                             ),
                           ],

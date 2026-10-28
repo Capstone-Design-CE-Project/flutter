@@ -149,6 +149,7 @@ class ApiService {
     required String name,
     String? email,
     String? phone,
+    String? organization,
   }) async {
     try {
       final response = await _post(
@@ -159,6 +160,7 @@ class ApiService {
           'name': name,
           'email': ?email,
           'phone': ?phone,
+          'organization': ?organization,
         },
       );
       return _asMap(response.data);

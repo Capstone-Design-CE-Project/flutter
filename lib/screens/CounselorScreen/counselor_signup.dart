@@ -18,6 +18,7 @@ class _CounselorsignupWidgetState extends State<CounselorsignupWidget> {
   final _passwordController = TextEditingController();
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
+  final _organizationController = TextEditingController();
   final _apiService = ApiService();
 
   bool _isSaving = false;
@@ -30,6 +31,7 @@ class _CounselorsignupWidgetState extends State<CounselorsignupWidget> {
     _passwordController.dispose();
     _phoneController.dispose();
     _emailController.dispose();
+    _organizationController.dispose();
     super.dispose();
   }
 
@@ -64,6 +66,9 @@ class _CounselorsignupWidgetState extends State<CounselorsignupWidget> {
         phone: _phoneController.text.trim().isEmpty
             ? null
             : _phoneController.text.trim(),
+        organization: _organizationController.text.trim().isEmpty
+            ? null
+            : _organizationController.text.trim(),
       );
       if (!mounted) return;
       Navigator.of(
@@ -281,6 +286,13 @@ class _CounselorsignupWidgetState extends State<CounselorsignupWidget> {
                             hintText: 'abcd1234@naver.com',
                             keyboardType: TextInputType.emailAddress,
                             textInputAction: TextInputAction.next,
+                          ),
+                          const SizedBox(height: 20),
+                          _field(
+                            label: '소속',
+                            controller: _organizationController,
+                            hintText: '기관/단체/기업명 기입',
+                            textInputAction: TextInputAction.done,
                           ),
                           const SizedBox(height: 32),
                           SizedBox(

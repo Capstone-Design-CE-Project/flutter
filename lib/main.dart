@@ -264,12 +264,16 @@ class _SeniorCareAppState extends State<SeniorCareApp> {
       PrototypeRoutes.clientHome: const ClienthomeWidget(),
       PrototypeRoutes.clientAlbum: const ClientalbumWidget(),
       PrototypeRoutes.clientSummary: const ClientsummarydetailWidget(),
-      PrototypeRoutes.clientSettings: const ClientsettingsWidget(),
+      PrototypeRoutes.clientSettings: ClientsettingsWidget(
+        authSession: widget.authSession,
+      ),
       PrototypeRoutes.counselorLogin: CounselorLoginV3(
         authSession: widget.authSession,
       ),
       PrototypeRoutes.counselorSignup: const CounselorsignupWidget(),
-      PrototypeRoutes.dashboard: const DashboardWidget(),
+      PrototypeRoutes.dashboard: DashboardWidget(
+        authSession: widget.authSession,
+      ),
       PrototypeRoutes.clientList: const ClientList(),
       PrototypeRoutes.clientDetail: const ClientDetailV3(),
       PrototypeRoutes.calendar: const CalendarV3(),

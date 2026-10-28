@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../api/api_service.dart';
+import '../../api/consultation_model.dart';
 import '../../widgets/device_clock.dart';
 
 void main() {
@@ -23,7 +24,9 @@ class FigmaToCodeApp extends StatelessWidget {
 }
 
 class NewClientForm extends StatefulWidget {
-  const NewClientForm({super.key});
+  const NewClientForm({super.key, this.initialClient});
+
+  final ClientDetail? initialClient;
 
   @override
   State<NewClientForm> createState() => _NewClientFormState();
@@ -33,16 +36,33 @@ class _NewClientFormState extends State<NewClientForm> {
   final _nameController = TextEditingController();
   final _ageController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _pinController = TextEditingController();
   final _memoController = TextEditingController();
   final _apiService = ApiService();
   String? _gender;
   bool _isSaving = false;
+  bool _isPinObscured = true;
+
+  bool get _isEditing => widget.initialClient != null;
+
+  @override
+  void initState() {
+    super.initState();
+    final client = widget.initialClient;
+    if (client == null) return;
+    _nameController.text = client.name;
+    _ageController.text = client.age?.toString() ?? '';
+    _phoneController.text = client.phone ?? '';
+    _memoController.text = client.memo ?? '';
+    _gender = client.gender;
+  }
 
   @override
   void dispose() {
     _nameController.dispose();
     _ageController.dispose();
     _phoneController.dispose();
+    _pinController.dispose();
     _memoController.dispose();
     super.dispose();
   }
@@ -63,20 +83,47 @@ class _NewClientFormState extends State<NewClientForm> {
       return;
     }
 
+    final phone = _phoneController.text.trim();
+    if (phone.isEmpty) {
+      _showMessage('내담자 로그인에 사용할 연락처를 입력해 주세요.');
+      return;
+    }
+
+    final pin = _pinController.text.trim();
+    if ((!_isEditing || pin.isNotEmpty) && !RegExp(r'^\d{6}$').hasMatch(pin)) {
+      _showMessage(
+        _isEditing
+            ? '비밀번호를 변경하려면 숫자 6자리를 입력해 주세요.'
+            : '초기 비밀번호는 숫자 6자리로 입력해 주세요.',
+      );
+      return;
+    }
+
     setState(() => _isSaving = true);
     final memo = _memoController.text.trim();
     try {
-      // 메모도 함께 서버에 저장한다. 기기에만 두면 상담사가 기기를 바꿨을 때
-      // 사라지고 다른 상담사와 공유되지 않는다.
-      await _apiService.createClient(
-        name: name,
-        age: age,
-        gender: _gender,
-        phone: _phoneController.text.trim().isEmpty
-            ? null
-            : _phoneController.text.trim(),
-        memo: memo.isEmpty ? null : memo,
-      );
+      if (_isEditing) {
+        await _apiService.updateClient(
+          widget.initialClient!.id,
+          name: name,
+          age: age,
+          gender: _gender,
+          phone: phone,
+          loginId: phone,
+          pin: pin.isEmpty ? null : pin,
+          memo: memo.isEmpty ? null : memo,
+        );
+      } else {
+        await _apiService.createClient(
+          name: name,
+          age: age,
+          gender: _gender,
+          phone: phone,
+          loginId: phone,
+          pin: pin,
+          memo: memo.isEmpty ? null : memo,
+        );
+      }
     } catch (error) {
       if (!mounted) return;
       setState(() => _isSaving = false);
@@ -86,7 +133,7 @@ class _NewClientFormState extends State<NewClientForm> {
 
     if (!mounted) return;
     setState(() => _isSaving = false);
-    Navigator.of(context).pop('내담자를 등록했습니다.');
+    Navigator.of(context).pop(_isEditing ? '내담자 정보를 수정했습니다.' : '내담자를 등록했습니다.');
   }
 
   void _showMessage(String message) {
@@ -252,7 +299,7 @@ class _NewClientFormState extends State<NewClientForm> {
                       SizedBox(
                         width: 310,
                         child: Text(
-                          '새 내담자 추가',
+                          _isEditing ? '내담자 정보 수정' : '새 내담자 추가',
                           style: TextStyle(
                             color: const Color(0xFF1A2B49),
                             fontSize: 22,
@@ -300,7 +347,7 @@ class _NewClientFormState extends State<NewClientForm> {
                             SizedBox(
                               width: 322,
                               child: Text(
-                                '새로운 내담자 등록',
+                                _isEditing ? '내담자 정보 수정' : '새로운 내담자 등록',
                                 style: TextStyle(
                                   color: const Color(0xFFFF6B53),
                                   fontSize: 14,
@@ -312,7 +359,9 @@ class _NewClientFormState extends State<NewClientForm> {
                             SizedBox(
                               width: 322,
                               child: Text(
-                                '면담 관리를 위해 인적 사항 및 상담 전 주의 메모를 정확히 기록해주세요.',
+                                _isEditing
+                                    ? '수정할 정보를 입력해 주세요. 비밀번호를 비워두면 기존 비밀번호가 유지됩니다.'
+                                    : '면담 관리를 위해 인적 사항 및 상담 전 주의 메모를 정확히 기록해주세요.',
                                 style: TextStyle(
                                   color: const Color(0xFF7D879C),
                                   fontSize: 13,
@@ -359,6 +408,91 @@ class _NewClientFormState extends State<NewClientForm> {
                                   color: Color(0xFF7D879C),
                                   fontSize: 15,
                                   fontFamily: 'GowunBatang',
+                                ),
+                                filled: true,
+                                fillColor: Colors.white,
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
+                                border: OutlineInputBorder(
+                                  borderSide: const BorderSide(
+                                    width: 1.5,
+                                    color: Color(0xFFEAEFF2),
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderSide: const BorderSide(
+                                    width: 1.5,
+                                    color: Color(0xFFEAEFF2),
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide: const BorderSide(
+                                    width: 1.5,
+                                    color: Color(0xFFFF6B53),
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(
+                        width: double.infinity,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          spacing: 8,
+                          children: [
+                            SizedBox(
+                              width: 354,
+                              child: Text(
+                                '초기 비밀번호',
+                                style: TextStyle(
+                                  color: const Color(0xFF1A2B49),
+                                  fontSize: 14,
+                                  fontFamily: 'GowunBatang',
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            TextField(
+                              controller: _pinController,
+                              style: const TextStyle(
+                                color: Color(0xFF1A2B49),
+                                fontSize: 15,
+                                fontFamily: 'GowunBatang',
+                              ),
+                              obscureText: _isPinObscured,
+                              keyboardType: TextInputType.number,
+                              textInputAction: TextInputAction.next,
+                              maxLength: 6,
+                              decoration: InputDecoration(
+                                hintText: '숫자 6자리',
+                                hintStyle: const TextStyle(
+                                  color: Color(0xFF7D879C),
+                                  fontSize: 15,
+                                  fontFamily: 'GowunBatang',
+                                ),
+                                counterText: '',
+                                suffixIcon: IconButton(
+                                  onPressed: () => setState(
+                                    () => _isPinObscured = !_isPinObscured,
+                                  ),
+                                  tooltip: _isPinObscured
+                                      ? '비밀번호 표시'
+                                      : '비밀번호 숨기기',
+                                  icon: Icon(
+                                    _isPinObscured
+                                        ? Icons.visibility
+                                        : Icons.visibility_off,
+                                    color: const Color(0xFF7D879C),
+                                  ),
                                 ),
                                 filled: true,
                                 fillColor: Colors.white,

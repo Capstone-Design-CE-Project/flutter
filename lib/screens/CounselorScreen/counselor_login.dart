@@ -236,6 +236,15 @@ class _CounselorLoginV3State extends State<CounselorLoginV3> {
                                   ),
                             child: const Text('메인 화면으로 돌아가기'),
                           ),
+                          TextButton(
+                            onPressed: _isLoading
+                                ? null
+                                : () => openPrototypeRoute(
+                                    context,
+                                    PrototypeRoutes.counselorSignup,
+                                  ),
+                            child: const Text('회원가입'),
+                          ),
                         ],
                       ),
                     ),

@@ -18,6 +18,7 @@ abstract final class PrototypeRoutes {
   static const clientSummary = '/client-summary';
   static const clientSettings = '/client-settings';
   static const counselorLogin = '/counselor-login';
+  static const counselorSignup = '/counselor-signup';
   static const dashboard = '/dashboard';
   static const clientList = '/client-list';
   static const clientDetail = '/client-detail';
@@ -41,6 +42,7 @@ abstract final class PrototypeRoutes {
     clientLogin,
     loginFailure,
     counselorLogin,
+    counselorSignup,
   };
 
   static bool isPublic(String route) => publicRoutes.contains(route);

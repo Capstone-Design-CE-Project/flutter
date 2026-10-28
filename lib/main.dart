@@ -7,6 +7,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'auth/auth_session.dart';
 import 'config/app_settings.dart';
+import 'api/consultation_model.dart' show ClientDetail;
 import 'navigation/auth_route_guard.dart';
 import 'navigation/prototype_routes.dart';
 import 'screens/ClientScreen/client_album.dart' show ClientalbumWidget;
@@ -21,6 +22,8 @@ import 'screens/CounselorScreen/client_list.dart' show ClientList;
 import 'screens/CounselorScreen/client_list_recording.dart'
     show ClientListRecordingV3;
 import 'screens/CounselorScreen/counselor_login.dart' show CounselorLoginV3;
+import 'screens/CounselorScreen/counselor_signup.dart'
+    show CounselorsignupWidget;
 import 'screens/CounselorScreen/dashboard.dart' show DashboardWidget;
 import 'screens/CounselorScreen/image_generation_loading.dart'
     show ImageGenerationLoading;
@@ -265,6 +268,7 @@ class _SeniorCareAppState extends State<SeniorCareApp> {
       PrototypeRoutes.counselorLogin: CounselorLoginV3(
         authSession: widget.authSession,
       ),
+      PrototypeRoutes.counselorSignup: const CounselorsignupWidget(),
       PrototypeRoutes.dashboard: const DashboardWidget(),
       PrototypeRoutes.clientList: const ClientList(),
       PrototypeRoutes.clientDetail: const ClientDetailV3(),
@@ -348,6 +352,8 @@ class _SeniorCareAppState extends State<SeniorCareApp> {
           )
         : routeName == PrototypeRoutes.sessionDetail
         ? SessionDetailV3(sessionId: payload is int ? payload : null)
+        : routeName == PrototypeRoutes.newClient
+        ? NewClientForm(initialClient: payload is ClientDetail ? payload : null)
         : configuredPage;
     final transition = wasRedirected
         ? FlowTransition.none

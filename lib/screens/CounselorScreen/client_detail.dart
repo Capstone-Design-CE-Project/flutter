@@ -124,6 +124,35 @@ class _ClientDetailV3State extends State<ClientDetailV3> {
     await _loadSessions(reset: true);
   }
 
+  Future<void> _editClient() async {
+    try {
+      final client = await _clientFuture;
+      if (!mounted) return;
+      final result = await Navigator.of(context).pushNamed(
+        PrototypeRoutes.newClient,
+        arguments: PrototypeRouteArguments(
+          transition: FlowTransition.slide,
+          payload: client,
+        ),
+      );
+      if (!mounted || result is! String) return;
+      setState(() => _clientFuture = _loadClient());
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(result)));
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '내담자 정보를 불러오지 못했습니다: '
+            '${error.toString().replaceFirst('Exception: ', '')}',
+          ),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -169,7 +198,14 @@ class _ClientDetailV3State extends State<ClientDetailV3> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 48),
+                  IconButton(
+                    onPressed: _editClient,
+                    tooltip: '정보 수정',
+                    icon: const Icon(
+                      Icons.edit_outlined,
+                      color: Color(0xFF1A2B49),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -586,10 +622,7 @@ class _SessionCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              const Icon(
-                Icons.chevron_right,
-                color: Color(0xFF7D879C),
-              ),
+              const Icon(Icons.chevron_right, color: Color(0xFF7D879C)),
             ],
           ),
         ),

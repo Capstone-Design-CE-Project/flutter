@@ -3,10 +3,7 @@ import 'package:flutter/widgets.dart';
 enum FlowTransition { slide, slideBack, fade, none }
 
 class PrototypeRouteArguments {
-  const PrototypeRouteArguments({
-    required this.transition,
-    this.payload,
-  });
+  const PrototypeRouteArguments({required this.transition, this.payload});
 
   final FlowTransition transition;
   final Object? payload;
@@ -38,6 +35,15 @@ abstract final class PrototypeRoutes {
   static const sessionComplete = '/session-complete';
   static const sessionDetail = '/session-detail';
   static const sessionEnd = '/session-end';
+
+  static const Set<String> publicRoutes = {
+    entry,
+    clientLogin,
+    loginFailure,
+    counselorLogin,
+  };
+
+  static bool isPublic(String route) => publicRoutes.contains(route);
 }
 
 void openPrototypeRoute(

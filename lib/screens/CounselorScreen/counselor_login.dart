@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 
 import '../../api/api_service.dart';
+import '../../auth/auth_session.dart';
 import '../../navigation/prototype_routes.dart';
 import '../../widgets/device_clock.dart';
 
 class CounselorLoginV3 extends StatefulWidget {
-  const CounselorLoginV3({super.key});
+  const CounselorLoginV3({required this.authSession, super.key});
+
+  final AuthSession authSession;
 
   @override
   State<CounselorLoginV3> createState() => _CounselorLoginV3State();
@@ -34,6 +37,7 @@ class _CounselorLoginV3State extends State<CounselorLoginV3> {
       _showLoginError = false;
     });
     _apiService.clearAuthToken();
+    widget.authSession.signOut();
 
     try {
       final response = await _apiService.loginCounselor(
@@ -45,6 +49,7 @@ class _CounselorLoginV3State extends State<CounselorLoginV3> {
         _showFailure();
         return;
       }
+      widget.authSession.signIn();
       if (!mounted) return;
       Navigator.of(context).pushReplacementNamed(PrototypeRoutes.dashboard);
     } catch (_) {
@@ -97,7 +102,7 @@ class _CounselorLoginV3State extends State<CounselorLoginV3> {
                       children: [
                         const DeviceClock(color: Colors.white),
                         const SizedBox(height: 32),
-                        
+
                         const SizedBox(height: 16),
                         Text(
                           '기억의 조각',

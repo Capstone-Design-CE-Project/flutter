@@ -5,7 +5,9 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
+import 'auth/auth_session.dart';
 import 'config/app_settings.dart';
+import 'navigation/auth_route_guard.dart';
 import 'navigation/prototype_routes.dart';
 import 'screens/ClientScreen/client_album.dart' show ClientalbumWidget;
 import 'screens/ClientScreen/client_home.dart' show ClienthomeWidget;
@@ -50,13 +52,18 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final settings = AppSettings();
   await settings.load();
-  runApp(SeniorCareApp(settings: settings));
+  runApp(SeniorCareApp(settings: settings, authSession: AuthSession()));
 }
 
 class SeniorCareApp extends StatefulWidget {
-  const SeniorCareApp({required this.settings, super.key});
+  const SeniorCareApp({
+    required this.settings,
+    required this.authSession,
+    super.key,
+  });
 
   final AppSettings settings;
+  final AuthSession authSession;
 
   @override
   State<SeniorCareApp> createState() => _SeniorCareAppState();
@@ -247,13 +254,17 @@ class _SeniorCareAppState extends State<SeniorCareApp> {
   Route<dynamic>? _generateRoute(RouteSettings settings) {
     final pages = <String, Widget>{
       PrototypeRoutes.entry: const SplashtitleWidget(),
-      PrototypeRoutes.clientLogin: const ClientloginWidget(),
+      PrototypeRoutes.clientLogin: ClientloginWidget(
+        authSession: widget.authSession,
+      ),
       PrototypeRoutes.loginFailure: const LoginFailureScreen(),
       PrototypeRoutes.clientHome: const ClienthomeWidget(),
       PrototypeRoutes.clientAlbum: const ClientalbumWidget(),
       PrototypeRoutes.clientSummary: const ClientsummarydetailWidget(),
       PrototypeRoutes.clientSettings: const ClientsettingsWidget(),
-      PrototypeRoutes.counselorLogin: const CounselorLoginV3(),
+      PrototypeRoutes.counselorLogin: CounselorLoginV3(
+        authSession: widget.authSession,
+      ),
       PrototypeRoutes.dashboard: const DashboardWidget(),
       PrototypeRoutes.clientList: const ClientList(),
       PrototypeRoutes.clientDetail: const ClientDetailV3(),
@@ -272,66 +283,80 @@ class _SeniorCareAppState extends State<SeniorCareApp> {
       PrototypeRoutes.sessionDetail: const SessionDetailV3(),
       PrototypeRoutes.sessionEnd: SessionEndPopupV3(),
     };
-    final routeArguments = settings.arguments is PrototypeRouteArguments
-        ? settings.arguments! as PrototypeRouteArguments
-        : null;
-    final configuredPage = pages[settings.name];
-    if (configuredPage == null) {
+    final requestedPage = pages[settings.name];
+    if (requestedPage == null) {
       if (settings.name == '/') return null;
       throw FlutterError('Unknown prototype route: ${settings.name}');
     }
 
+    final requestedRoute = settings.name!;
+    final routeName = AuthRouteGuard(
+      widget.authSession,
+    ).resolve(requestedRoute);
+    final wasRedirected = routeName != requestedRoute;
+    final effectiveSettings = wasRedirected
+        ? const RouteSettings(name: PrototypeRoutes.entry)
+        : settings;
+    final routeArguments =
+        !wasRedirected && settings.arguments is PrototypeRouteArguments
+        ? settings.arguments! as PrototypeRouteArguments
+        : null;
+    final configuredPage = wasRedirected
+        ? pages[PrototypeRoutes.entry]!
+        : requestedPage;
+
     final payload = routeArguments?.payload;
-    final page = settings.name == PrototypeRoutes.clientSummary
+    final page = routeName == PrototypeRoutes.clientSummary
         ? ClientsummarydetailWidget(sessionId: payload is int ? payload : null)
-        : settings.name == PrototypeRoutes.clientDetail
+        : routeName == PrototypeRoutes.clientDetail
         ? ClientDetailV3(clientId: payload is int ? payload : null)
-        : settings.name == PrototypeRoutes.sessionInfo
+        : routeName == PrototypeRoutes.sessionInfo
         ? SessionInfoInputV3(clientId: payload is int ? payload : null)
-        : settings.name == PrototypeRoutes.sessionStart
+        : routeName == PrototypeRoutes.sessionStart
         ? SessionStartPopupV3(clientId: payload is int ? payload : null)
-        : settings.name == PrototypeRoutes.recording
+        : routeName == PrototypeRoutes.recording
         ? RecordingV3(clientId: payload is int ? payload : null)
-        : settings.name == PrototypeRoutes.summaryGeneration
+        : routeName == PrototypeRoutes.summaryGeneration
         ? SummaryGenerationLoading(
             request: payload is SummaryGenerationRequest ? payload : null,
           )
-        : settings.name == PrototypeRoutes.summaryReview
+        : routeName == PrototypeRoutes.summaryReview
         ? SummaryReviewV3(
             routePayload: payload is SummaryReviewRoutePayload ? payload : null,
           )
-        : settings.name == PrototypeRoutes.textConfirm
+        : routeName == PrototypeRoutes.textConfirm
         ? TextConfirmPopup(
             routePayload: payload is SummaryReviewRoutePayload ? payload : null,
           )
-        : settings.name == PrototypeRoutes.imageLoading
+        : routeName == PrototypeRoutes.imageLoading
         ? ImageGenerationLoading(
             request: payload is ImageGenerationRequest ? payload : null,
           )
-        : settings.name == PrototypeRoutes.imageReview
+        : routeName == PrototypeRoutes.imageReview
         ? ImageReviewV3(
             routePayload: payload is ImageReviewRoutePayload ? payload : null,
           )
-        : settings.name == PrototypeRoutes.sessionComplete
+        : routeName == PrototypeRoutes.sessionComplete
         ? SessionCompleteV3(
             routePayload: payload is SessionCompleteRoutePayload
                 ? payload
                 : null,
           )
-        : settings.name == PrototypeRoutes.sessionEnd
+        : routeName == PrototypeRoutes.sessionEnd
         ? SessionEndPopupV3(
             request: payload is SessionEndConfirmationRequest ? payload : null,
           )
-        : settings.name == PrototypeRoutes.sessionDetail
+        : routeName == PrototypeRoutes.sessionDetail
         ? SessionDetailV3(sessionId: payload is int ? payload : null)
         : configuredPage;
-    final transition =
-        routeArguments?.transition ??
-        (settings.arguments is FlowTransition
-            ? settings.arguments! as FlowTransition
-            : FlowTransition.slide);
+    final transition = wasRedirected
+        ? FlowTransition.none
+        : routeArguments?.transition ??
+              (settings.arguments is FlowTransition
+                  ? settings.arguments! as FlowTransition
+                  : FlowTransition.slide);
     return PageRouteBuilder<dynamic>(
-      settings: settings,
+      settings: effectiveSettings,
       transitionDuration: transition == FlowTransition.none
           ? Duration.zero
           : const Duration(milliseconds: 300),

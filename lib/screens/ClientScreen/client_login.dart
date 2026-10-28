@@ -6,12 +6,15 @@ import 'package:phone_hint_android/phone_hint_android.dart';
 
 import '../../api/api_service.dart';
 import '../../api/client_session.dart';
+import '../../auth/auth_session.dart';
 import '../../navigation/prototype_routes.dart';
 import '../../widgets/device_clock.dart';
 import 'client_phone_input.dart';
 
 class ClientloginWidget extends StatefulWidget {
-  const ClientloginWidget({super.key});
+  const ClientloginWidget({required this.authSession, super.key});
+
+  final AuthSession authSession;
 
   @override
   State<ClientloginWidget> createState() => _ClientloginWidgetState();
@@ -124,6 +127,7 @@ class _ClientloginWidgetState extends State<ClientloginWidget> {
       _isLoading = true;
       _errorMessage = null;
     });
+    widget.authSession.signOut();
 
     try {
       final response = await _apiService.loginClient(
@@ -145,6 +149,7 @@ class _ClientloginWidgetState extends State<ClientloginWidget> {
       }
 
       ClientSession.start(clientId: clientId, loginId: phoneNumber);
+      widget.authSession.signIn();
       if (!mounted) return;
       Navigator.of(context).pushReplacementNamed(PrototypeRoutes.clientHome);
     } catch (error) {

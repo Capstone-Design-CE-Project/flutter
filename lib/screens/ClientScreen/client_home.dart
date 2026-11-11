@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../navigation/prototype_routes.dart';
-import '../../widgets/device_clock.dart';
+import '../../navigation/app_navigation.dart';
 
 class ClienthomeWidget extends StatelessWidget {
   const ClienthomeWidget({super.key});
@@ -15,17 +15,7 @@ class ClienthomeWidget extends StatelessWidget {
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 10, 24, 4),
-              child: Row(
-                children: [
-                  const DeviceClock(color: _navy, fontSize: 12),
-                  const Spacer(),
-                  const Icon(Icons.signal_cellular_alt, size: 14, color: _navy),
-                  const SizedBox(width: 4),
-                  const Icon(Icons.wifi, size: 14, color: _navy),
-                  const SizedBox(width: 4),
-                  const Icon(Icons.battery_full, size: 16, color: _navy),
-                ],
-              ),
+              child: AppNavigationBar(),
             ),
             const Padding(
               padding: EdgeInsets.fromLTRB(24, 12, 24, 12),
@@ -78,9 +68,8 @@ class _MemoryAlbumCard extends StatelessWidget {
             Image.asset(
               'asset/images/Heroalbumcard.png',
               fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => const ColoredBox(
-                color: Color(0xFF68768A),
-              ),
+              errorBuilder: (context, error, stackTrace) =>
+                  const ColoredBox(color: Color(0xFF68768A)),
             ),
             const ColoredBox(color: Color(0x661A2B49)),
             Padding(

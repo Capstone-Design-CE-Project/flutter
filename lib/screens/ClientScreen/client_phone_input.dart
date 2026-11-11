@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../navigation/prototype_routes.dart';
-import '../../widgets/device_clock.dart';
+import '../../utils/phone_number.dart';
+import '../../navigation/app_navigation.dart';
 
 class ClientPhoneInputScreen extends StatefulWidget {
   const ClientPhoneInputScreen({super.key});
@@ -15,9 +15,8 @@ class _ClientPhoneInputScreenState extends State<ClientPhoneInputScreen> {
   String? _errorMessage;
 
   void _continue() {
-    final phone = _phoneController.text.trim();
-    final digitCount = phone.replaceAll(RegExp(r'\D'), '').length;
-    if (digitCount < 10 || digitCount > 15) {
+    final phone = normalizePhoneNumber(_phoneController.text.trim());
+    if (phone == null) {
       setState(() => _errorMessage = '전화번호를 다시 확인해 주세요.');
       return;
     }
@@ -40,21 +39,7 @@ class _ClientPhoneInputScreenState extends State<ClientPhoneInputScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Row(
-                children: [
-                  TextButton.icon(
-                    onPressed: () =>
-                        Navigator.of(context).pushNamedAndRemoveUntil(
-                          PrototypeRoutes.entry,
-                          (route) => false,
-                        ),
-                    icon: const Icon(Icons.home_outlined, size: 18),
-                    label: const Text('메인 화면'),
-                  ),
-                  const Spacer(),
-                  const DeviceClock(color: Color(0xFF1A2B49)),
-                ],
-              ),
+              AppNavigationBar(),
               const SizedBox(height: 48),
               const Text(
                 '전화번호 입력',

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../api/api_service.dart';
 import '../../api/consultation_model.dart';
-import '../../widgets/device_clock.dart';
+import '../../utils/phone_number.dart';
+import '../../navigation/app_navigation.dart';
 
 void main() {
   runApp(const FigmaToCodeApp());
@@ -18,15 +20,16 @@ class FigmaToCodeApp extends StatelessWidget {
       theme: ThemeData.dark().copyWith(
         scaffoldBackgroundColor: const Color.fromARGB(255, 18, 32, 47),
       ),
-      home: Scaffold(body: ListView(children: [const NewClientForm()])),
+      home: const NewClientForm(),
     );
   }
 }
 
 class NewClientForm extends StatefulWidget {
-  const NewClientForm({super.key, this.initialClient});
+  const NewClientForm({super.key, this.initialClient, this.apiService});
 
   final ClientDetail? initialClient;
+  final ApiService? apiService;
 
   @override
   State<NewClientForm> createState() => _NewClientFormState();
@@ -38,7 +41,7 @@ class _NewClientFormState extends State<NewClientForm> {
   final _phoneController = TextEditingController();
   final _pinController = TextEditingController();
   final _memoController = TextEditingController();
-  final _apiService = ApiService();
+  late final ApiService _apiService;
   String? _gender;
   bool _isSaving = false;
   bool _isPinObscured = true;
@@ -48,6 +51,7 @@ class _NewClientFormState extends State<NewClientForm> {
   @override
   void initState() {
     super.initState();
+    _apiService = widget.apiService ?? ApiService();
     final client = widget.initialClient;
     if (client == null) return;
     _nameController.text = client.name;
@@ -75,6 +79,10 @@ class _NewClientFormState extends State<NewClientForm> {
       _showMessage('이름을 입력해 주세요.');
       return;
     }
+    if (name.runes.length > 50) {
+      _showMessage('이름은 50자 이하로 입력해 주세요.');
+      return;
+    }
 
     final ageText = _ageController.text.trim();
     final age = ageText.isEmpty ? null : int.tryParse(ageText);
@@ -83,9 +91,14 @@ class _NewClientFormState extends State<NewClientForm> {
       return;
     }
 
-    final phone = _phoneController.text.trim();
-    if (phone.isEmpty) {
+    final phoneText = _phoneController.text.trim();
+    if (phoneText.isEmpty) {
       _showMessage('내담자 로그인에 사용할 연락처를 입력해 주세요.');
+      return;
+    }
+    final phone = normalizePhoneNumber(phoneText);
+    if (phone == null) {
+      _showMessage('전화번호 형식이 올바르지 않습니다. 연락처를 확인해 주세요.');
       return;
     }
 
@@ -109,7 +122,6 @@ class _NewClientFormState extends State<NewClientForm> {
           age: age,
           gender: _gender,
           phone: phone,
-          loginId: phone,
           pin: pin.isEmpty ? null : pin,
           memo: memo.isEmpty ? null : memo,
         );
@@ -119,7 +131,6 @@ class _NewClientFormState extends State<NewClientForm> {
           age: age,
           gender: _gender,
           phone: phone,
-          loginId: phone,
           pin: pin,
           memo: memo.isEmpty ? null : memo,
         );
@@ -137,9 +148,9 @@ class _NewClientFormState extends State<NewClientForm> {
   }
 
   void _showMessage(String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
   }
 
   Widget _genderOption({required String value, required String label}) {
@@ -182,659 +193,702 @@ class _NewClientFormState extends State<NewClientForm> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        ConstrainedBox(
-          constraints: BoxConstraints(minHeight: 874),
-          child: Container(
-            width: 402,
-            clipBehavior: Clip.antiAlias,
-            decoration: ShapeDecoration(
-              color: const Color(0xFFFCF9F5),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(36),
-              ),
-            ),
-            child: Stack(
-              children: [
-                Positioned(
-                  left: 232,
-                  top: -80,
-                  child: Opacity(
-                    opacity: 0.90,
-                    child: Container(
-                      width: 260,
-                      height: 260,
-                      decoration: ShapeDecoration(
-                        color: Colors.white,
-                        shape: OvalBorder(),
-                      ),
-                    ),
+    return Scaffold(
+      backgroundColor: const Color(0xFFFCF9F5),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final minHeight = constraints.hasBoundedHeight
+              ? constraints.maxHeight
+              : 874.0;
+          return SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: minHeight),
+              child: Container(
+                width: double.infinity,
+                clipBehavior: Clip.antiAlias,
+                decoration: ShapeDecoration(
+                  color: const Color(0xFFFCF9F5),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(36),
                   ),
                 ),
-                Positioned(
-                  left: -100,
-                  top: 220,
-                  child: Opacity(
-                    opacity: 0.06,
-                    child: Container(
-                      width: 240,
-                      height: 240,
-                      decoration: ShapeDecoration(
-                        color: const Color(0xFFFF6B53),
-                        shape: OvalBorder(),
+                child: Stack(
+                  children: [
+                    Positioned(
+                      left: 232,
+                      top: -80,
+                      child: Opacity(
+                        opacity: 0.90,
+                        child: Container(
+                          width: 260,
+                          height: 260,
+                          decoration: ShapeDecoration(
+                            color: Colors.white,
+                            shape: OvalBorder(),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-                Container(
-                  width: double.infinity,
-                  height: 44,
-                  padding: const EdgeInsets.only(
-                    top: 12,
-                    left: 24,
-                    right: 24,
-                    bottom: 8,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const DeviceClock(color: Color(0xFF1A2B49), fontSize: 15),
-                      Row(
+                    Positioned(
+                      left: -100,
+                      top: 220,
+                      child: Opacity(
+                        opacity: 0.06,
+                        child: Container(
+                          width: 240,
+                          height: 240,
+                          decoration: ShapeDecoration(
+                            color: const Color(0xFFFF6B53),
+                            shape: OvalBorder(),
+                          ),
+                        ),
+                      ),
+                    ),
+                    SafeArea(
+                      child: Column(
                         mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        spacing: 6,
                         children: [
                           Container(
-                            width: 20,
-                            height: 20,
-                            clipBehavior: Clip.antiAlias,
-                            decoration: BoxDecoration(),
-                            child: Stack(),
+                            width: double.infinity,
+                            padding: const EdgeInsets.only(
+                              top: 12,
+                              left: 24,
+                              right: 24,
+                              bottom: 8,
+                            ),
+                            child: AppNavigationBar(showBack: false),
                           ),
                           Container(
-                            width: 20,
-                            height: 20,
-                            clipBehavior: Clip.antiAlias,
-                            decoration: BoxDecoration(),
-                            child: Stack(),
+                            width: double.infinity,
+                            padding: const EdgeInsets.only(
+                              top: 8,
+                              left: 20,
+                              right: 20,
+                              bottom: 12,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              spacing: 12,
+                              children: [
+                                const AppBackButton(color: Color(0xFF1A2B49)),
+                                Expanded(
+                                  child: Text(
+                                    _isEditing ? '내담자 정보 수정' : '새 내담자 추가',
+                                    style: TextStyle(
+                                      color: const Color(0xFF1A2B49),
+                                      fontSize: 22,
+                                      fontFamily: 'GowunBatang',
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                           Container(
-                            width: 28,
-                            height: 20,
-                            clipBehavior: Clip.antiAlias,
-                            decoration: BoxDecoration(),
-                            child: Stack(),
+                            width: double.infinity,
+                            padding: const EdgeInsets.only(
+                              top: 16,
+                              left: 24,
+                              right: 24,
+                              bottom: 24,
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              spacing: 20,
+                              children: [
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: ShapeDecoration(
+                                    color: const Color(0x14FF6B53),
+                                    shape: RoundedRectangleBorder(
+                                      side: BorderSide(
+                                        width: 1,
+                                        color: const Color(0x26FF6B53),
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    spacing: 4,
+                                    children: [
+                                      SizedBox(
+                                        width: 322,
+                                        child: Text(
+                                          _isEditing
+                                              ? '내담자 정보 수정'
+                                              : '새로운 내담자 등록',
+                                          style: TextStyle(
+                                            color: const Color(0xFFFF6B53),
+                                            fontSize: 14,
+                                            fontFamily: 'GowunBatang',
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        width: 322,
+                                        child: Text(
+                                          _isEditing
+                                              ? '수정할 정보를 입력해 주세요. 비밀번호를 비워두면 기존 비밀번호가 유지됩니다.'
+                                              : '면담 관리를 위해 인적 사항 및 상담 전 주의 메모를 정확히 기록해주세요.',
+                                          style: TextStyle(
+                                            color: const Color(0xFF7D879C),
+                                            fontSize: 13,
+                                            fontFamily: 'GowunBatang',
+                                            fontWeight: FontWeight.w400,
+                                            height: 1.40,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    spacing: 8,
+                                    children: [
+                                      SizedBox(
+                                        width: 354,
+                                        child: Text(
+                                          '이름',
+                                          style: TextStyle(
+                                            color: const Color(0xFF1A2B49),
+                                            fontSize: 14,
+                                            fontFamily: 'GowunBatang',
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                      TextField(
+                                        controller: _nameController,
+                                        style: const TextStyle(
+                                          color: Color(0xFF1A2B49),
+                                          fontSize: 15,
+                                          fontFamily: 'GowunBatang',
+                                        ),
+                                        textInputAction: TextInputAction.next,
+                                        decoration: InputDecoration(
+                                          hintText: '내담자의 이름을 입력하세요',
+                                          hintStyle: const TextStyle(
+                                            color: Color(0xFF7D879C),
+                                            fontSize: 15,
+                                            fontFamily: 'GowunBatang',
+                                          ),
+                                          filled: true,
+                                          fillColor: Colors.white,
+                                          contentPadding:
+                                              const EdgeInsets.symmetric(
+                                                horizontal: 16,
+                                                vertical: 12,
+                                              ),
+                                          border: OutlineInputBorder(
+                                            borderSide: const BorderSide(
+                                              width: 1.5,
+                                              color: Color(0xFFEAEFF2),
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                          enabledBorder: OutlineInputBorder(
+                                            borderSide: const BorderSide(
+                                              width: 1.5,
+                                              color: Color(0xFFEAEFF2),
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                          focusedBorder: OutlineInputBorder(
+                                            borderSide: const BorderSide(
+                                              width: 1.5,
+                                              color: Color(0xFFFF6B53),
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    spacing: 8,
+                                    children: [
+                                      SizedBox(
+                                        width: 354,
+                                        child: Text(
+                                          _isEditing
+                                              ? '비밀번호 변경 (선택)'
+                                              : '초기 비밀번호',
+                                          style: TextStyle(
+                                            color: const Color(0xFF1A2B49),
+                                            fontSize: 14,
+                                            fontFamily: 'GowunBatang',
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                      TextField(
+                                        controller: _pinController,
+                                        style: const TextStyle(
+                                          color: Color(0xFF1A2B49),
+                                          fontSize: 15,
+                                          fontFamily: 'GowunBatang',
+                                        ),
+                                        obscureText: _isPinObscured,
+                                        keyboardType: TextInputType.number,
+                                        inputFormatters: [
+                                          FilteringTextInputFormatter
+                                              .digitsOnly,
+                                        ],
+                                        textInputAction: TextInputAction.next,
+                                        maxLength: 6,
+                                        decoration: InputDecoration(
+                                          hintText: _isEditing
+                                              ? '변경할 때만 숫자 6자리 입력'
+                                              : '숫자 6자리',
+                                          hintStyle: const TextStyle(
+                                            color: Color(0xFF7D879C),
+                                            fontSize: 15,
+                                            fontFamily: 'GowunBatang',
+                                          ),
+                                          counterText: '',
+                                          suffixIcon: IconButton(
+                                            onPressed: () => setState(
+                                              () => _isPinObscured =
+                                                  !_isPinObscured,
+                                            ),
+                                            tooltip: _isPinObscured
+                                                ? '비밀번호 표시'
+                                                : '비밀번호 숨기기',
+                                            icon: Icon(
+                                              _isPinObscured
+                                                  ? Icons.visibility
+                                                  : Icons.visibility_off,
+                                              color: const Color(0xFF7D879C),
+                                            ),
+                                          ),
+                                          filled: true,
+                                          fillColor: Colors.white,
+                                          contentPadding:
+                                              const EdgeInsets.symmetric(
+                                                horizontal: 16,
+                                                vertical: 12,
+                                              ),
+                                          border: OutlineInputBorder(
+                                            borderSide: const BorderSide(
+                                              width: 1.5,
+                                              color: Color(0xFFEAEFF2),
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                          enabledBorder: OutlineInputBorder(
+                                            borderSide: const BorderSide(
+                                              width: 1.5,
+                                              color: Color(0xFFEAEFF2),
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                          focusedBorder: OutlineInputBorder(
+                                            borderSide: const BorderSide(
+                                              width: 1.5,
+                                              color: Color(0xFFFF6B53),
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    spacing: 8,
+                                    children: [
+                                      SizedBox(
+                                        width: 354,
+                                        child: Text(
+                                          '나이',
+                                          style: TextStyle(
+                                            color: const Color(0xFF1A2B49),
+                                            fontSize: 14,
+                                            fontFamily: 'GowunBatang',
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                      TextField(
+                                        controller: _ageController,
+                                        style: const TextStyle(
+                                          color: Color(0xFF1A2B49),
+                                          fontSize: 15,
+                                          fontFamily: 'GowunBatang',
+                                        ),
+                                        keyboardType: TextInputType.number,
+                                        textInputAction: TextInputAction.next,
+                                        decoration: InputDecoration(
+                                          hintText: '세 (예: 72)',
+                                          hintStyle: const TextStyle(
+                                            color: Color(0xFF7D879C),
+                                            fontSize: 15,
+                                            fontFamily: 'GowunBatang',
+                                          ),
+                                          filled: true,
+                                          fillColor: Colors.white,
+                                          contentPadding:
+                                              const EdgeInsets.symmetric(
+                                                horizontal: 16,
+                                                vertical: 12,
+                                              ),
+                                          border: OutlineInputBorder(
+                                            borderSide: const BorderSide(
+                                              width: 1.5,
+                                              color: Color(0xFFEAEFF2),
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                          enabledBorder: OutlineInputBorder(
+                                            borderSide: const BorderSide(
+                                              width: 1.5,
+                                              color: Color(0xFFEAEFF2),
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                          focusedBorder: OutlineInputBorder(
+                                            borderSide: const BorderSide(
+                                              width: 1.5,
+                                              color: Color(0xFFFF6B53),
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    spacing: 8,
+                                    children: [
+                                      SizedBox(
+                                        width: 354,
+                                        child: Text(
+                                          '성별',
+                                          style: TextStyle(
+                                            color: const Color(0xFF1A2B49),
+                                            fontSize: 14,
+                                            fontFamily: 'GowunBatang',
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        width: double.infinity,
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          spacing: 12,
+                                          children: [
+                                            _genderOption(
+                                              value: 'M',
+                                              label: '남성',
+                                            ),
+                                            _genderOption(
+                                              value: 'F',
+                                              label: '여성',
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    spacing: 8,
+                                    children: [
+                                      SizedBox(
+                                        width: 354,
+                                        child: Text(
+                                          '연락처',
+                                          style: TextStyle(
+                                            color: const Color(0xFF1A2B49),
+                                            fontSize: 14,
+                                            fontFamily: 'GowunBatang',
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                      TextField(
+                                        controller: _phoneController,
+                                        style: const TextStyle(
+                                          color: Color(0xFF1A2B49),
+                                          fontSize: 15,
+                                          fontFamily: 'GowunBatang',
+                                        ),
+                                        keyboardType: TextInputType.phone,
+                                        textInputAction: TextInputAction.next,
+                                        decoration: InputDecoration(
+                                          hintText: '010-0000-0000',
+                                          hintStyle: const TextStyle(
+                                            color: Color(0xFF7D879C),
+                                            fontSize: 15,
+                                            fontFamily: 'GowunBatang',
+                                          ),
+                                          filled: true,
+                                          fillColor: Colors.white,
+                                          contentPadding:
+                                              const EdgeInsets.symmetric(
+                                                horizontal: 16,
+                                                vertical: 12,
+                                              ),
+                                          border: OutlineInputBorder(
+                                            borderSide: const BorderSide(
+                                              width: 1.5,
+                                              color: Color(0xFFEAEFF2),
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                          enabledBorder: OutlineInputBorder(
+                                            borderSide: const BorderSide(
+                                              width: 1.5,
+                                              color: Color(0xFFEAEFF2),
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                          focusedBorder: OutlineInputBorder(
+                                            borderSide: const BorderSide(
+                                              width: 1.5,
+                                              color: Color(0xFFFF6B53),
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    spacing: 8,
+                                    children: [
+                                      SizedBox(
+                                        width: 354,
+                                        child: Text(
+                                          '상담 메모 및 특이사항',
+                                          style: TextStyle(
+                                            color: const Color(0xFF1A2B49),
+                                            fontSize: 14,
+                                            fontFamily: 'GowunBatang',
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                      TextField(
+                                        controller: _memoController,
+                                        style: const TextStyle(
+                                          color: Color(0xFF1A2B49),
+                                          fontSize: 15,
+                                          fontFamily: 'GowunBatang',
+                                          height: 1.5,
+                                        ),
+                                        minLines: 4,
+                                        maxLines: 5,
+                                        textInputAction:
+                                            TextInputAction.newline,
+                                        decoration: InputDecoration(
+                                          hintText:
+                                              '상담 전 숙지해야 할 과거 병력이나 성향 등의 메모를 자유롭게 입력하세요 (예: 최근 단기 기억 저하 호소)',
+                                          hintStyle: const TextStyle(
+                                            color: Color(0xFF7D879C),
+                                            fontSize: 15,
+                                            fontFamily: 'GowunBatang',
+                                            height: 1.5,
+                                          ),
+                                          filled: true,
+                                          fillColor: Colors.white,
+                                          contentPadding: const EdgeInsets.all(
+                                            16,
+                                          ),
+                                          border: OutlineInputBorder(
+                                            borderSide: const BorderSide(
+                                              width: 1.5,
+                                              color: Color(0xFFEAEFF2),
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                          enabledBorder: OutlineInputBorder(
+                                            borderSide: const BorderSide(
+                                              width: 1.5,
+                                              color: Color(0xFFEAEFF2),
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                          focusedBorder: OutlineInputBorder(
+                                            borderSide: const BorderSide(
+                                              width: 1.5,
+                                              color: Color(0xFFFF6B53),
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.only(
+                                    top: 12,
+                                    bottom: 8,
+                                  ),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      InkWell(
+                                        onTap: _isSaving ? null : _saveClient,
+                                        borderRadius: BorderRadius.circular(
+                                          100,
+                                        ),
+                                        child: Container(
+                                          width: double.infinity,
+                                          height: 52,
+                                          decoration: ShapeDecoration(
+                                            color: const Color(0xFFFF6B53),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(100),
+                                            ),
+                                            shadows: [
+                                              BoxShadow(
+                                                color: Color(0x081A2B49),
+                                                blurRadius: 16,
+                                                offset: Offset(0, 4),
+                                                spreadRadius: 0,
+                                              ),
+                                            ],
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.center,
+                                            spacing: 8,
+                                            children: [
+                                              if (_isSaving)
+                                                const SizedBox(
+                                                  width: 22,
+                                                  height: 22,
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                        color: Colors.white,
+                                                        strokeWidth: 2,
+                                                      ),
+                                                )
+                                              else
+                                                const Text(
+                                                  '저장하기',
+                                                  style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 16,
+                                                    fontFamily: 'GowunBatang',
+                                                    fontWeight: FontWeight.w700,
+                                                  ),
+                                                ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.only(
-                    top: 8,
-                    left: 20,
-                    right: 20,
-                    bottom: 12,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    spacing: 12,
-                    children: [
-                      IconButton(
-                        onPressed: () => Navigator.of(context).maybePop(),
-                        tooltip: '뒤로가기',
-                        icon: const Icon(
-                          Icons.arrow_back,
-                          color: Color(0xFF1A2B49),
-                        ),
-                      ),
-                      SizedBox(
-                        width: 310,
-                        child: Text(
-                          _isEditing ? '내담자 정보 수정' : '새 내담자 추가',
-                          style: TextStyle(
-                            color: const Color(0xFF1A2B49),
-                            fontSize: 22,
-                            fontFamily: 'GowunBatang',
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.only(
-                    top: 16,
-                    left: 24,
-                    right: 24,
-                    bottom: 24,
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    spacing: 20,
-                    children: [
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(16),
-                        decoration: ShapeDecoration(
-                          color: const Color(0x14FF6B53),
-                          shape: RoundedRectangleBorder(
-                            side: BorderSide(
-                              width: 1,
-                              color: const Color(0x26FF6B53),
-                            ),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          spacing: 4,
-                          children: [
-                            SizedBox(
-                              width: 322,
-                              child: Text(
-                                _isEditing ? '내담자 정보 수정' : '새로운 내담자 등록',
-                                style: TextStyle(
-                                  color: const Color(0xFFFF6B53),
-                                  fontSize: 14,
-                                  fontFamily: 'GowunBatang',
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                            SizedBox(
-                              width: 322,
-                              child: Text(
-                                _isEditing
-                                    ? '수정할 정보를 입력해 주세요. 비밀번호를 비워두면 기존 비밀번호가 유지됩니다.'
-                                    : '면담 관리를 위해 인적 사항 및 상담 전 주의 메모를 정확히 기록해주세요.',
-                                style: TextStyle(
-                                  color: const Color(0xFF7D879C),
-                                  fontSize: 13,
-                                  fontFamily: 'GowunBatang',
-                                  fontWeight: FontWeight.w400,
-                                  height: 1.40,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(
-                        width: double.infinity,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          spacing: 8,
-                          children: [
-                            SizedBox(
-                              width: 354,
-                              child: Text(
-                                '이름',
-                                style: TextStyle(
-                                  color: const Color(0xFF1A2B49),
-                                  fontSize: 14,
-                                  fontFamily: 'GowunBatang',
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                            TextField(
-                              controller: _nameController,
-                              style: const TextStyle(
-                                color: Color(0xFF1A2B49),
-                                fontSize: 15,
-                                fontFamily: 'GowunBatang',
-                              ),
-                              textInputAction: TextInputAction.next,
-                              decoration: InputDecoration(
-                                hintText: '내담자의 이름을 입력하세요',
-                                hintStyle: const TextStyle(
-                                  color: Color(0xFF7D879C),
-                                  fontSize: 15,
-                                  fontFamily: 'GowunBatang',
-                                ),
-                                filled: true,
-                                fillColor: Colors.white,
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 12,
-                                ),
-                                border: OutlineInputBorder(
-                                  borderSide: const BorderSide(
-                                    width: 1.5,
-                                    color: Color(0xFFEAEFF2),
-                                  ),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderSide: const BorderSide(
-                                    width: 1.5,
-                                    color: Color(0xFFEAEFF2),
-                                  ),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide: const BorderSide(
-                                    width: 1.5,
-                                    color: Color(0xFFFF6B53),
-                                  ),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(
-                        width: double.infinity,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          spacing: 8,
-                          children: [
-                            SizedBox(
-                              width: 354,
-                              child: Text(
-                                '초기 비밀번호',
-                                style: TextStyle(
-                                  color: const Color(0xFF1A2B49),
-                                  fontSize: 14,
-                                  fontFamily: 'GowunBatang',
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                            TextField(
-                              controller: _pinController,
-                              style: const TextStyle(
-                                color: Color(0xFF1A2B49),
-                                fontSize: 15,
-                                fontFamily: 'GowunBatang',
-                              ),
-                              obscureText: _isPinObscured,
-                              keyboardType: TextInputType.number,
-                              textInputAction: TextInputAction.next,
-                              maxLength: 6,
-                              decoration: InputDecoration(
-                                hintText: '숫자 6자리',
-                                hintStyle: const TextStyle(
-                                  color: Color(0xFF7D879C),
-                                  fontSize: 15,
-                                  fontFamily: 'GowunBatang',
-                                ),
-                                counterText: '',
-                                suffixIcon: IconButton(
-                                  onPressed: () => setState(
-                                    () => _isPinObscured = !_isPinObscured,
-                                  ),
-                                  tooltip: _isPinObscured
-                                      ? '비밀번호 표시'
-                                      : '비밀번호 숨기기',
-                                  icon: Icon(
-                                    _isPinObscured
-                                        ? Icons.visibility
-                                        : Icons.visibility_off,
-                                    color: const Color(0xFF7D879C),
-                                  ),
-                                ),
-                                filled: true,
-                                fillColor: Colors.white,
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 12,
-                                ),
-                                border: OutlineInputBorder(
-                                  borderSide: const BorderSide(
-                                    width: 1.5,
-                                    color: Color(0xFFEAEFF2),
-                                  ),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderSide: const BorderSide(
-                                    width: 1.5,
-                                    color: Color(0xFFEAEFF2),
-                                  ),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide: const BorderSide(
-                                    width: 1.5,
-                                    color: Color(0xFFFF6B53),
-                                  ),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(
-                        width: double.infinity,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          spacing: 8,
-                          children: [
-                            SizedBox(
-                              width: 354,
-                              child: Text(
-                                '나이',
-                                style: TextStyle(
-                                  color: const Color(0xFF1A2B49),
-                                  fontSize: 14,
-                                  fontFamily: 'GowunBatang',
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                            TextField(
-                              controller: _ageController,
-                              style: const TextStyle(
-                                color: Color(0xFF1A2B49),
-                                fontSize: 15,
-                                fontFamily: 'GowunBatang',
-                              ),
-                              keyboardType: TextInputType.number,
-                              textInputAction: TextInputAction.next,
-                              decoration: InputDecoration(
-                                hintText: '세 (예: 72)',
-                                hintStyle: const TextStyle(
-                                  color: Color(0xFF7D879C),
-                                  fontSize: 15,
-                                  fontFamily: 'GowunBatang',
-                                ),
-                                filled: true,
-                                fillColor: Colors.white,
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 12,
-                                ),
-                                border: OutlineInputBorder(
-                                  borderSide: const BorderSide(
-                                    width: 1.5,
-                                    color: Color(0xFFEAEFF2),
-                                  ),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderSide: const BorderSide(
-                                    width: 1.5,
-                                    color: Color(0xFFEAEFF2),
-                                  ),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide: const BorderSide(
-                                    width: 1.5,
-                                    color: Color(0xFFFF6B53),
-                                  ),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(
-                        width: double.infinity,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          spacing: 8,
-                          children: [
-                            SizedBox(
-                              width: 354,
-                              child: Text(
-                                '성별',
-                                style: TextStyle(
-                                  color: const Color(0xFF1A2B49),
-                                  fontSize: 14,
-                                  fontFamily: 'GowunBatang',
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                            SizedBox(
-                              width: double.infinity,
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                spacing: 12,
-                                children: [
-                                  _genderOption(value: 'M', label: '남성'),
-                                  _genderOption(value: 'F', label: '여성'),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(
-                        width: double.infinity,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          spacing: 8,
-                          children: [
-                            SizedBox(
-                              width: 354,
-                              child: Text(
-                                '연락처',
-                                style: TextStyle(
-                                  color: const Color(0xFF1A2B49),
-                                  fontSize: 14,
-                                  fontFamily: 'GowunBatang',
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                            TextField(
-                              controller: _phoneController,
-                              style: const TextStyle(
-                                color: Color(0xFF1A2B49),
-                                fontSize: 15,
-                                fontFamily: 'GowunBatang',
-                              ),
-                              keyboardType: TextInputType.phone,
-                              textInputAction: TextInputAction.next,
-                              decoration: InputDecoration(
-                                hintText: '010-0000-0000',
-                                hintStyle: const TextStyle(
-                                  color: Color(0xFF7D879C),
-                                  fontSize: 15,
-                                  fontFamily: 'GowunBatang',
-                                ),
-                                filled: true,
-                                fillColor: Colors.white,
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 12,
-                                ),
-                                border: OutlineInputBorder(
-                                  borderSide: const BorderSide(
-                                    width: 1.5,
-                                    color: Color(0xFFEAEFF2),
-                                  ),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderSide: const BorderSide(
-                                    width: 1.5,
-                                    color: Color(0xFFEAEFF2),
-                                  ),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide: const BorderSide(
-                                    width: 1.5,
-                                    color: Color(0xFFFF6B53),
-                                  ),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(
-                        width: double.infinity,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          spacing: 8,
-                          children: [
-                            SizedBox(
-                              width: 354,
-                              child: Text(
-                                '상담 메모 및 특이사항',
-                                style: TextStyle(
-                                  color: const Color(0xFF1A2B49),
-                                  fontSize: 14,
-                                  fontFamily: 'GowunBatang',
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                            TextField(
-                              controller: _memoController,
-                              style: const TextStyle(
-                                color: Color(0xFF1A2B49),
-                                fontSize: 15,
-                                fontFamily: 'GowunBatang',
-                                height: 1.5,
-                              ),
-                              minLines: 4,
-                              maxLines: 5,
-                              textInputAction: TextInputAction.newline,
-                              decoration: InputDecoration(
-                                hintText:
-                                    '상담 전 숙지해야 할 과거 병력이나 성향 등의 메모를 자유롭게 입력하세요 (예: 최근 단기 기억 저하 호소)',
-                                hintStyle: const TextStyle(
-                                  color: Color(0xFF7D879C),
-                                  fontSize: 15,
-                                  fontFamily: 'GowunBatang',
-                                  height: 1.5,
-                                ),
-                                filled: true,
-                                fillColor: Colors.white,
-                                contentPadding: const EdgeInsets.all(16),
-                                border: OutlineInputBorder(
-                                  borderSide: const BorderSide(
-                                    width: 1.5,
-                                    color: Color(0xFFEAEFF2),
-                                  ),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderSide: const BorderSide(
-                                    width: 1.5,
-                                    color: Color(0xFFEAEFF2),
-                                  ),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide: const BorderSide(
-                                    width: 1.5,
-                                    color: Color(0xFFFF6B53),
-                                  ),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.only(top: 12, bottom: 8),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            InkWell(
-                              onTap: _isSaving ? null : _saveClient,
-                              borderRadius: BorderRadius.circular(100),
-                              child: Container(
-                                width: double.infinity,
-                                height: 52,
-                                decoration: ShapeDecoration(
-                                  color: const Color(0xFFFF6B53),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(100),
-                                  ),
-                                  shadows: [
-                                    BoxShadow(
-                                      color: Color(0x081A2B49),
-                                      blurRadius: 16,
-                                      offset: Offset(0, 4),
-                                      spreadRadius: 0,
-                                    ),
-                                  ],
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  spacing: 8,
-                                  children: [
-                                    if (_isSaving)
-                                      const SizedBox(
-                                        width: 22,
-                                        height: 22,
-                                        child: CircularProgressIndicator(
-                                          color: Colors.white,
-                                          strokeWidth: 2,
-                                        ),
-                                      )
-                                    else
-                                      const Text(
-                                        '저장하기',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 16,
-                                          fontFamily: 'GowunBatang',
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
-        ),
-      ],
+          );
+        },
+      ),
     );
   }
 }

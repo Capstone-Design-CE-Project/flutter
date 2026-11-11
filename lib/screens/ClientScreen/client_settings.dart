@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../api/api_service.dart';
-import '../../api/client_session.dart';
 import '../../auth/auth_session.dart';
 import '../../config/app_settings.dart';
 import '../../navigation/prototype_routes.dart';
-import '../../widgets/device_clock.dart';
+import '../../navigation/app_navigation.dart';
 
 class ClientsettingsWidget extends StatelessWidget {
   const ClientsettingsWidget({required this.authSession, super.key});
@@ -24,34 +22,6 @@ class ClientsettingsWidget extends StatelessWidget {
         context,
       ).showSnackBar(SnackBar(content: Text('설정을 저장하지 못했습니다: $error')));
     }
-  }
-
-  Future<void> _logout(BuildContext context) async {
-    final shouldLogout = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('로그아웃'),
-        content: const Text('로그아웃하시겠습니까?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('취소'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('로그아웃'),
-          ),
-        ],
-      ),
-    );
-    if (shouldLogout != true || !context.mounted) return;
-
-    ApiService().clearAuthToken();
-    ClientSession.clear();
-    authSession.signOut();
-    Navigator.of(
-      context,
-    ).pushNamedAndRemoveUntil(PrototypeRoutes.clientLogin, (route) => false);
   }
 
   @override
@@ -91,19 +61,15 @@ class ClientsettingsWidget extends StatelessWidget {
             children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(24, 12, 24, 8),
-                child: Row(
-                  children: [
-                    DeviceClock(color: colors.onSurface),
-                    const Spacer(),
-                    Text(
-                      '설정',
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        color: coral,
-                        fontSize: 22,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                  ],
+                child: AppNavigationBar(
+                  foregroundColor: colors.onSurface,
+                  showLogout: false,
+                  title: '설정',
+                  titleStyle: theme.textTheme.titleLarge?.copyWith(
+                    color: coral,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w400,
+                  ),
                 ),
               ),
               Expanded(
@@ -188,7 +154,10 @@ class ClientsettingsWidget extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     OutlinedButton.icon(
-                      onPressed: () => _logout(context),
+                      onPressed: () => AppNavigation.logout(
+                        context,
+                        authSession: authSession,
+                      ),
                       icon: const Icon(Icons.logout),
                       label: const Text('로그아웃'),
                       style: OutlinedButton.styleFrom(

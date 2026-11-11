@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../navigation/app_navigation.dart';
+
 import '../../navigation/prototype_routes.dart';
 import 'session_flow_payloads.dart';
 
@@ -27,6 +29,13 @@ class SessionEndPopupV3 extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: const Color(0x72111827),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        foregroundColor: const Color(0xFF1A2B49),
+        elevation: 0,
+        leading: const AppBackButton(),
+        actions: const [AppLogoutButton()],
+      ),
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
@@ -115,9 +124,9 @@ class SessionEndPopupV3 extends StatelessWidget {
                     SizedBox(
                       width: double.infinity,
                       child: OutlinedButton(
-                        onPressed: () => Navigator.of(context).pop(
-                          isRecordingConfirmation ? false : null,
-                        ),
+                        onPressed: () => Navigator.of(
+                          context,
+                        ).pop(isRecordingConfirmation ? false : null),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: const Color(0xFF1A2B49),
                           side: const BorderSide(

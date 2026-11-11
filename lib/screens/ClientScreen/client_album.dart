@@ -1,25 +1,27 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import '../../navigation/prototype_routes.dart';
 
 import '../../api/api_service.dart';
 import '../../api/client_session.dart';
 import '../../api/consultation_model.dart';
-import '../../widgets/device_clock.dart';
+import '../../navigation/app_navigation.dart';
 
 class ClientalbumWidget extends StatefulWidget {
-  const ClientalbumWidget({super.key});
+  const ClientalbumWidget({super.key, this.apiService});
+
+  final ApiService? apiService;
 
   @override
   State<ClientalbumWidget> createState() => _ClientalbumWidgetState();
 }
 
 class _ClientalbumWidgetState extends State<ClientalbumWidget> {
-  final ApiService _apiService = ApiService();
+  late final ApiService _apiService;
   late Future<AlbumListResponse> _albumsFuture;
   @override
   void initState() {
     super.initState();
+    _apiService = widget.apiService ?? ApiService();
     _albumsFuture = _loadAlbums();
   }
 
@@ -32,7 +34,9 @@ class _ClientalbumWidgetState extends State<ClientalbumWidget> {
   }
 
   void _reloadAlbums() {
-    setState(() => _albumsFuture = _loadAlbums());
+    setState(() {
+      _albumsFuture = _loadAlbums();
+    });
   }
 
   @override
@@ -44,17 +48,7 @@ class _ClientalbumWidgetState extends State<ClientalbumWidget> {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              child: Row(
-                children: [
-                  const DeviceClock(color: Color(0xFF1A2B49)),
-                  const Spacer(),
-                  _statusIcon('asset/images/vector14.svg', 20),
-                  const SizedBox(width: 6),
-                  _statusIcon('asset/images/vector15.svg', 20),
-                  const SizedBox(width: 6),
-                  _statusIcon('asset/images/vector16.svg', 28),
-                ],
-              ),
+              child: AppNavigationBar(),
             ),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
@@ -87,7 +81,7 @@ class _ClientalbumWidgetState extends State<ClientalbumWidget> {
 
                   final albums = snapshot.data?.items ?? const <AlbumCardOut>[];
                   if (albums.isEmpty) {
-                    return const _MessageView(message: '아직 저장된 앨범이 없습니다.');
+                    return const _MessageView(message: '저장된 이미지가 없습니다.');
                   }
 
                   return RefreshIndicator(
@@ -141,10 +135,6 @@ class _ClientalbumWidgetState extends State<ClientalbumWidget> {
         ),
       ),
     );
-  }
-
-  Widget _statusIcon(String asset, double width) {
-    return SvgPicture.asset(asset, width: width, height: 20);
   }
 
   Widget _navigationItem(IconData icon, String label, bool selected) {

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:phone_hint_android/phone_hint_android.dart';
@@ -8,7 +7,7 @@ import '../../api/api_service.dart';
 import '../../api/client_session.dart';
 import '../../auth/auth_session.dart';
 import '../../navigation/prototype_routes.dart';
-import '../../widgets/device_clock.dart';
+import '../../navigation/app_navigation.dart';
 import 'client_phone_input.dart';
 
 class ClientloginWidget extends StatefulWidget {
@@ -127,6 +126,8 @@ class _ClientloginWidgetState extends State<ClientloginWidget> {
       _isLoading = true;
       _errorMessage = null;
     });
+    _apiService.clearAuthToken();
+    ClientSession.clear();
     widget.authSession.signOut();
 
     try {
@@ -174,9 +175,9 @@ class _ClientloginWidgetState extends State<ClientloginWidget> {
       backgroundColor: const Color(0xFFFCF9F5),
       body: SafeArea(
         child: _isPreparingPhone
-            ? const Center(child: CircularProgressIndicator())
+            ? _withNavigation(const Center(child: CircularProgressIndicator()))
             : _phoneNumber == null
-            ? _buildPhoneRequired()
+            ? _withNavigation(_buildPhoneRequired())
             : SingleChildScrollView(
                 child: Column(
                   children: [
@@ -192,29 +193,7 @@ class _ClientloginWidgetState extends State<ClientloginWidget> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            children: [
-                              const DeviceClock(color: Color(0xFF1A2B49)),
-                              const Spacer(),
-                              SvgPicture.asset(
-                                'asset/images/vector3.svg',
-                                width: 20,
-                                height: 20,
-                              ),
-                              const SizedBox(width: 6),
-                              SvgPicture.asset(
-                                'asset/images/vector4.svg',
-                                width: 20,
-                                height: 20,
-                              ),
-                              const SizedBox(width: 6),
-                              SvgPicture.asset(
-                                'asset/images/vector5.svg',
-                                width: 28,
-                                height: 20,
-                              ),
-                            ],
-                          ),
+                          const AppNavigationBar(),
                           const SizedBox(height: 40),
                           const Text(
                             '기억의 조각',
@@ -340,6 +319,18 @@ class _ClientloginWidgetState extends State<ClientloginWidget> {
                 ),
               ),
       ),
+    );
+  }
+
+  Widget _withNavigation(Widget child) {
+    return Column(
+      children: [
+        const Padding(
+          padding: EdgeInsets.fromLTRB(24, 12, 24, 8),
+          child: AppNavigationBar(),
+        ),
+        Expanded(child: child),
+      ],
     );
   }
 

@@ -4,7 +4,7 @@ import '../../api/api_service.dart';
 import '../../api/client_session.dart';
 import '../../api/consultation_model.dart';
 import '../../navigation/prototype_routes.dart';
-import '../../widgets/device_clock.dart';
+import '../../navigation/app_navigation.dart';
 
 class ClientsummarydetailWidget extends StatefulWidget {
   const ClientsummarydetailWidget({this.sessionId, super.key});
@@ -66,29 +66,14 @@ class _ClientsummarydetailWidgetState extends State<ClientsummarydetailWidget> {
             children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(24, 12, 24, 8),
-                child: Row(
-                  children: [
-                    DeviceClock(color: colors.onSurface),
-                    const Spacer(),
-                    Text(
-                      '오늘의 요약',
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        color: coral,
-                        fontSize: 22,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                    const Spacer(),
-                    IconButton(
-                      tooltip: '요약 창 닫기',
-                      onPressed: () => openPrototypeRoute(
-                        context,
-                        PrototypeRoutes.clientAlbum,
-                        transition: FlowTransition.slideBack,
-                      ),
-                      icon: const Icon(Icons.close),
-                    ),
-                  ],
+                child: AppNavigationBar(
+                  foregroundColor: colors.onSurface,
+                  title: '오늘의 요약',
+                  titleStyle: theme.textTheme.titleLarge?.copyWith(
+                    color: coral,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w400,
+                  ),
                 ),
               ),
               Expanded(

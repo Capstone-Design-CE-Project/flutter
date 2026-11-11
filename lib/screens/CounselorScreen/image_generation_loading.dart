@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../navigation/app_navigation.dart';
+
 import '../../api/api_service.dart';
 import '../../navigation/prototype_routes.dart';
 import 'session_flow_payloads.dart';
@@ -78,15 +80,12 @@ class _ImageGenerationLoadingState extends State<ImageGenerationLoading> {
     return Scaffold(
       backgroundColor: const Color(0xFFFCF9F5),
       appBar: AppBar(
+        leading: const AppBackButton(),
+        actions: const [AppLogoutButton()],
         backgroundColor: const Color(0xFFFCF9F5),
         foregroundColor: const Color(0xFF1A2B49),
         centerTitle: true,
         automaticallyImplyLeading: false,
-        leading: IconButton(
-          onPressed: () => Navigator.of(context).maybePop(),
-          tooltip: '요약 검토로 돌아가기',
-          icon: const Icon(Icons.close),
-        ),
         title: const Text(
           'AI 회상 이미지 생성',
           style: TextStyle(

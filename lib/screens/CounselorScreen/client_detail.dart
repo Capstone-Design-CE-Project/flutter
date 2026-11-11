@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../api/api_service.dart';
 import '../../api/consultation_model.dart';
 import '../../navigation/prototype_routes.dart';
-import '../../widgets/device_clock.dart';
+import '../../navigation/app_navigation.dart';
 
 class ClientDetailV3 extends StatefulWidget {
   const ClientDetailV3({super.key, this.clientId});
@@ -162,30 +162,13 @@ class _ClientDetailV3State extends State<ClientDetailV3> {
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 12, 24, 8),
-              child: Row(
-                children: [
-                  const DeviceClock(color: Color(0xFF1A2B49), fontSize: 15),
-                  const Spacer(),
-                  const Icon(Icons.signal_cellular_alt, size: 18),
-                  const SizedBox(width: 6),
-                  const Icon(Icons.wifi, size: 18),
-                  const SizedBox(width: 6),
-                  const Icon(Icons.battery_full, size: 20),
-                ],
-              ),
+              child: AppNavigationBar(showBack: false),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 8, 24, 12),
               child: Row(
                 children: [
-                  IconButton(
-                    onPressed: () => Navigator.of(context).maybePop(),
-                    tooltip: '뒤로가기',
-                    icon: const Icon(
-                      Icons.arrow_back,
-                      color: Color(0xFF1A2B49),
-                    ),
-                  ),
+                  const AppBackButton(color: Color(0xFF1A2B49)),
                   const Expanded(
                     child: Text(
                       '상세 정보',

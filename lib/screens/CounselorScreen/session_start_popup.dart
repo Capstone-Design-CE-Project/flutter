@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../navigation/app_navigation.dart';
+
 import '../../api/api_service.dart';
 import '../../api/consultation_model.dart';
 import '../../navigation/prototype_routes.dart';
@@ -39,6 +41,13 @@ class _SessionStartPopupV3State extends State<SessionStartPopupV3> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFFCF9F5),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        foregroundColor: const Color(0xFF1A2B49),
+        elevation: 0,
+        leading: const AppBackButton(),
+        actions: const [AppLogoutButton()],
+      ),
       body: SafeArea(
         child: SizedBox.expand(
           child: DecoratedBox(

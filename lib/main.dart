@@ -9,6 +9,7 @@ import 'auth/auth_session.dart';
 import 'config/app_settings.dart';
 import 'api/consultation_model.dart' show ClientDetail;
 import 'navigation/auth_route_guard.dart';
+import 'navigation/app_navigation.dart';
 import 'navigation/prototype_routes.dart';
 import 'screens/ClientScreen/client_album.dart' show ClientalbumWidget;
 import 'screens/ClientScreen/client_home.dart' show ClienthomeWidget;
@@ -99,157 +100,160 @@ class _SeniorCareAppState extends State<SeniorCareApp> {
 
   @override
   Widget build(BuildContext context) {
-    return SettingsProvider(
-      notifier: _settings,
-      child: ListenableBuilder(
-        listenable: _settings,
-        builder: (context, _) {
-          final bool isDark = _settings.isDarkMode;
-          const Color coral = Color(0xFFFF6B53);
-          final Color primaryColor = isDark ? const Color(0xFFFF8E7C) : coral;
-          const Color accentColor = coral;
-          final Color surfaceColor = isDark
-              ? const Color(0xFF121212)
-              : Colors.white;
+    return AppNavigationScope(
+      session: widget.authSession,
+      child: SettingsProvider(
+        notifier: _settings,
+        child: ListenableBuilder(
+          listenable: _settings,
+          builder: (context, _) {
+            final bool isDark = _settings.isDarkMode;
+            const Color coral = Color(0xFFFF6B53);
+            final Color primaryColor = isDark ? const Color(0xFFFF8E7C) : coral;
+            const Color accentColor = coral;
+            final Color surfaceColor = isDark
+                ? const Color(0xFF121212)
+                : Colors.white;
 
-          return Listener(
-            onPointerDown: _handlePointerDown,
-            onPointerUp: _handlePointerUp,
-            onPointerCancel: _handlePointerCancel,
-            child: MaterialApp(
-              title: 'Senior Care App',
-              debugShowCheckedModeBanner: false,
-              initialRoute: PrototypeRoutes.entry,
-              onGenerateRoute: _generateRoute,
-              builder: (context, child) {
-                final mediaQuery = MediaQuery.of(context);
-                final textScaler = TextScaler.linear(
-                  _settings.fontSizeMultiplier,
-                );
-                final appChild = child ?? const SizedBox.shrink();
-
-                if (!kIsWeb) {
-                  return MediaQuery(
-                    data: mediaQuery.copyWith(textScaler: textScaler),
-                    child: appChild,
+            return Listener(
+              onPointerDown: _handlePointerDown,
+              onPointerUp: _handlePointerUp,
+              onPointerCancel: _handlePointerCancel,
+              child: MaterialApp(
+                title: 'Senior Care App',
+                debugShowCheckedModeBanner: false,
+                initialRoute: PrototypeRoutes.entry,
+                onGenerateRoute: _generateRoute,
+                builder: (context, child) {
+                  final mediaQuery = MediaQuery.of(context);
+                  final textScaler = TextScaler.linear(
+                    _settings.fontSizeMultiplier,
                   );
-                }
+                  final appChild = child ?? const SizedBox.shrink();
 
-                return LayoutBuilder(
-                  builder: (context, constraints) {
-                    final width = math.min(
-                      constraints.maxWidth,
-                      constraints.maxHeight * (402 / 874),
+                  if (!kIsWeb) {
+                    return MediaQuery(
+                      data: mediaQuery.copyWith(textScaler: textScaler),
+                      child: appChild,
                     );
-                    final height = width * (874 / 402);
-                    return ColoredBox(
-                      color: const Color(0xFF1A2B49),
-                      child: Center(
-                        child: Container(
-                          width: width,
-                          height: height,
-                          clipBehavior: Clip.antiAlias,
-                          decoration: BoxDecoration(
-                            color: surfaceColor,
-                            borderRadius: BorderRadius.circular(24),
-                            boxShadow: const [
-                              BoxShadow(
-                                color: Color(0x66000000),
-                                blurRadius: 32,
-                                offset: Offset(0, 12),
-                              ),
-                            ],
-                          ),
-                          child: FittedBox(
-                            fit: BoxFit.contain,
-                            child: SizedBox(
-                              width: 402,
-                              height: 874,
-                              child: MediaQuery(
-                                data: mediaQuery.copyWith(
-                                  size: const Size(402, 874),
-                                  textScaler: textScaler,
+                  }
+
+                  return LayoutBuilder(
+                    builder: (context, constraints) {
+                      final width = math.min(
+                        constraints.maxWidth,
+                        constraints.maxHeight * (402 / 874),
+                      );
+                      final height = width * (874 / 402);
+                      return ColoredBox(
+                        color: const Color(0xFF1A2B49),
+                        child: Center(
+                          child: Container(
+                            width: width,
+                            height: height,
+                            clipBehavior: Clip.antiAlias,
+                            decoration: BoxDecoration(
+                              color: surfaceColor,
+                              borderRadius: BorderRadius.circular(24),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Color(0x66000000),
+                                  blurRadius: 32,
+                                  offset: Offset(0, 12),
                                 ),
-                                child: appChild,
+                              ],
+                            ),
+                            child: FittedBox(
+                              fit: BoxFit.contain,
+                              child: SizedBox(
+                                width: 402,
+                                height: 874,
+                                child: MediaQuery(
+                                  data: mediaQuery.copyWith(
+                                    size: const Size(402, 874),
+                                    textScaler: textScaler,
+                                  ),
+                                  child: appChild,
+                                ),
                               ),
                             ),
                           ),
                         ),
+                      );
+                    },
+                  );
+                },
+                theme: ThemeData(
+                  useMaterial3: true,
+                  brightness: isDark ? Brightness.dark : Brightness.light,
+                  fontFamily: 'GowunBatang',
+                  colorScheme:
+                      ColorScheme.fromSeed(
+                        seedColor: accentColor,
+                        brightness: isDark ? Brightness.dark : Brightness.light,
+                      ).copyWith(
+                        primary: primaryColor,
+                        onPrimary: isDark
+                            ? const Color(0xFF10212E)
+                            : Colors.white,
+                        secondary: accentColor,
+                        surface: surfaceColor,
+                        onSurface: isDark
+                            ? Colors.white
+                            : const Color(0xFF003366),
                       ),
-                    );
-                  },
-                );
-              },
-              theme: ThemeData(
-                useMaterial3: true,
-                brightness: isDark ? Brightness.dark : Brightness.light,
-                fontFamily: 'GowunBatang',
-                colorScheme:
-                    ColorScheme.fromSeed(
-                      seedColor: accentColor,
-                      brightness: isDark ? Brightness.dark : Brightness.light,
-                    ).copyWith(
-                      primary: primaryColor,
-                      onPrimary: isDark
+                  scaffoldBackgroundColor: surfaceColor,
+                  appBarTheme: AppBarTheme(
+                    backgroundColor: surfaceColor,
+                    foregroundColor: isDark ? Colors.white : primaryColor,
+                    elevation: 0,
+                    centerTitle: true,
+                  ),
+                  cardTheme: CardThemeData(
+                    color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                    surfaceTintColor: Colors.transparent,
+                  ),
+                  switchTheme: SwitchThemeData(
+                    thumbColor: WidgetStateProperty.resolveWith(
+                      (states) => states.contains(WidgetState.selected)
+                          ? primaryColor
+                          : null,
+                    ),
+                  ),
+                  elevatedButtonTheme: ElevatedButtonThemeData(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primaryColor,
+                      foregroundColor: isDark
                           ? const Color(0xFF10212E)
                           : Colors.white,
-                      secondary: accentColor,
-                      surface: surfaceColor,
-                      onSurface: isDark
-                          ? Colors.white
-                          : const Color(0xFF003366),
+                      minimumSize: const Size(double.infinity, 64),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      textStyle: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w400,
+                      ),
+                      elevation: 2,
                     ),
-                scaffoldBackgroundColor: surfaceColor,
-                appBarTheme: AppBarTheme(
-                  backgroundColor: surfaceColor,
-                  foregroundColor: isDark ? Colors.white : primaryColor,
-                  elevation: 0,
-                  centerTitle: true,
-                ),
-                cardTheme: CardThemeData(
-                  color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-                  surfaceTintColor: Colors.transparent,
-                ),
-                switchTheme: SwitchThemeData(
-                  thumbColor: WidgetStateProperty.resolveWith(
-                    (states) => states.contains(WidgetState.selected)
-                        ? primaryColor
-                        : null,
                   ),
-                ),
-                elevatedButtonTheme: ElevatedButtonThemeData(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryColor,
-                    foregroundColor: isDark
-                        ? const Color(0xFF10212E)
-                        : Colors.white,
-                    minimumSize: const Size(double.infinity, 64),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    textStyle: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w400,
-                    ),
-                    elevation: 2,
-                  ),
-                ),
-                filledButtonTheme: FilledButtonThemeData(
-                  style: FilledButton.styleFrom(
-                    backgroundColor: primaryColor,
-                    foregroundColor: isDark
-                        ? const Color(0xFF1A2B49)
-                        : Colors.white,
-                    textStyle: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w400,
+                  filledButtonTheme: FilledButtonThemeData(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: primaryColor,
+                      foregroundColor: isDark
+                          ? const Color(0xFF1A2B49)
+                          : Colors.white,
+                      textStyle: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w400,
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }

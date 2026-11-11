@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/foundation.dart'
     show ErrorDescription, FlutterError, FlutterErrorDetails, kIsWeb;
 import 'package:flutter/material.dart';
+
+import '../../navigation/app_navigation.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
@@ -276,6 +278,8 @@ class _RecordingV3State extends State<RecordingV3> {
     return Scaffold(
       backgroundColor: const Color(0xFFFCF9F5),
       appBar: AppBar(
+        leading: const AppBackButton(),
+        actions: const [AppLogoutButton()],
         backgroundColor: const Color(0xFFFCF9F5),
         foregroundColor: const Color(0xFF1A2B49),
         centerTitle: true,
@@ -286,11 +290,6 @@ class _RecordingV3State extends State<RecordingV3> {
             fontSize: 18,
             fontWeight: FontWeight.w700,
           ),
-        ),
-        leading: IconButton(
-          tooltip: '뒤로가기',
-          onPressed: () => Navigator.of(context).maybePop(),
-          icon: const Icon(Icons.arrow_back),
         ),
       ),
       body: SafeArea(

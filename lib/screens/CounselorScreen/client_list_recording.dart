@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import '../../api/api_service.dart';
 import '../../api/consultation_model.dart';
 import '../../navigation/prototype_routes.dart';
-import '../../widgets/device_clock.dart';
+import '../../navigation/app_navigation.dart';
 
 class ClientListRecordingV3 extends StatefulWidget {
   const ClientListRecordingV3({super.key});
@@ -122,20 +122,7 @@ class _ClientListRecordingV3State extends State<ClientListRecordingV3> {
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 12, 24, 8),
-              child: Row(
-                children: [
-                  const DeviceClock(
-                    color: Color(0xFF1A2B49),
-                    fontSize: 15,
-                  ),
-                  const Spacer(),
-                  const Icon(Icons.signal_cellular_alt, size: 18),
-                  const SizedBox(width: 6),
-                  const Icon(Icons.wifi, size: 18),
-                  const SizedBox(width: 6),
-                  const Icon(Icons.battery_full, size: 20),
-                ],
-              ),
+              child: AppNavigationBar(),
             ),
             const Padding(
               padding: EdgeInsets.fromLTRB(24, 16, 24, 8),
@@ -420,10 +407,7 @@ class _RecordingListMessage extends StatelessWidget {
             Text(
               detail!,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Color(0xFF7D879C),
-                fontSize: 12,
-              ),
+              style: const TextStyle(color: Color(0xFF7D879C), fontSize: 12),
             ),
           ],
           if (actionLabel != null && onAction != null) ...[

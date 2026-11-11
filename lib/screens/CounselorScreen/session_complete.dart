@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../navigation/app_navigation.dart';
+
 import '../../api/api_service.dart';
 import '../../api/consultation_model.dart';
 import '../../navigation/prototype_routes.dart';
@@ -83,6 +85,8 @@ class _SessionCompleteV3State extends State<SessionCompleteV3> {
     return Scaffold(
       backgroundColor: const Color(0xFFFCF9F5),
       appBar: AppBar(
+        leading: const AppBackButton(),
+        actions: const [AppLogoutButton()],
         backgroundColor: const Color(0xFFFCF9F5),
         foregroundColor: const Color(0xFF1A2B49),
         centerTitle: true,

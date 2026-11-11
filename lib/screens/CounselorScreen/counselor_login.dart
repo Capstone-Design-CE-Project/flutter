@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../api/api_service.dart';
+import '../../api/client_session.dart';
 import '../../auth/auth_session.dart';
 import '../../navigation/prototype_routes.dart';
-import '../../widgets/device_clock.dart';
+import '../../navigation/app_navigation.dart';
 
 class CounselorLoginV3 extends StatefulWidget {
   const CounselorLoginV3({required this.authSession, super.key});
@@ -37,6 +38,7 @@ class _CounselorLoginV3State extends State<CounselorLoginV3> {
       _showLoginError = false;
     });
     _apiService.clearAuthToken();
+    ClientSession.clear();
     widget.authSession.signOut();
 
     try {
@@ -100,7 +102,7 @@ class _CounselorLoginV3State extends State<CounselorLoginV3> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const DeviceClock(color: Colors.white),
+                        const AppNavigationBar(foregroundColor: Colors.white),
                         const SizedBox(height: 32),
 
                         const SizedBox(height: 16),

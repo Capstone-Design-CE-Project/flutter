@@ -1,10 +1,9 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 import '../navigation/prototype_routes.dart';
-import '../widgets/device_clock.dart';
+import '../navigation/app_navigation.dart';
 
 class SplashtitleWidget extends StatefulWidget {
   const SplashtitleWidget({super.key});
@@ -43,116 +42,87 @@ class _SplashtitleWidgetState extends State<SplashtitleWidget> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-              Center(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 20 * scale,
-                    vertical: 8 * scale,
-                  ),
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        DeviceClock(color: Colors.white, fontSize: 12 * scale),
-                        SizedBox(width: 8 * scale),
-                        SvgPicture.asset(
-                          'asset/images/vector0.svg',
-                          width: 12 * scale,
-                          height: 12 * scale,
-                          semanticsLabel: 'signal',
-                        ),
-                        SizedBox(width: 4 * scale),
-                        SvgPicture.asset(
-                          'asset/images/vector1.svg',
-                          width: 12 * scale,
-                          height: 12 * scale,
-                          semanticsLabel: 'wifi',
-                        ),
-                        SizedBox(width: 4 * scale),
-                        SvgPicture.asset(
-                          'asset/images/vector2.svg',
-                          width: 16 * scale,
-                          height: 12 * scale,
-                          semanticsLabel: 'battery',
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Center(
+                Center(
                   child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 32 * scale),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(
-                            '기억의 조각',
-                            softWrap: false,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontFamily: 'GowunBatang',
-                              fontSize: 40 * scale,
-                              fontWeight: FontWeight.w400,
-                              decoration: TextDecoration.none,
-                              height: 1,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 20 * scale,
+                      vertical: 8 * scale,
+                    ),
+                    child: AppNavigationBar(foregroundColor: Colors.white),
+                  ),
+                ),
+                Expanded(
+                  child: Center(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 32 * scale),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              '기억의 조각',
+                              softWrap: false,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontFamily: 'GowunBatang',
+                                fontSize: 40 * scale,
+                                fontWeight: FontWeight.w400,
+                                decoration: TextDecoration.none,
+                                height: 1,
+                              ),
                             ),
                           ),
-                        ),
-                        SizedBox(height: 16 * scale),
-                        FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(
-                            '소중한 기억을 함께 지켜갑니다',
-                            softWrap: false,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontFamily: 'GowunBatang',
-                              fontSize: 18 * scale,
-                              fontWeight: FontWeight.w400,
-                              decoration: TextDecoration.none,
-                              height: 1,
+                          SizedBox(height: 16 * scale),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              '소중한 기억을 함께 지켜갑니다',
+                              softWrap: false,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontFamily: 'GowunBatang',
+                                fontSize: 18 * scale,
+                                fontWeight: FontWeight.w400,
+                                decoration: TextDecoration.none,
+                                height: 1,
+                              ),
                             ),
                           ),
-                        ),
-                        SizedBox(height: 48 * scale),
-                        _LoginButton(
-                          label: '내담자 로그인',
-                          route: PrototypeRoutes.clientLogin,
-                          filled: true,
-                          scale: scale,
-                        ),
-                        SizedBox(height: 16 * scale),
-                        _LoginButton(
-                          label: '상담사 로그인',
-                          route: PrototypeRoutes.counselorLogin,
-                          filled: false,
-                          scale: scale,
-                        ),
-                      ],
+                          SizedBox(height: 48 * scale),
+                          _LoginButton(
+                            label: '내담자 로그인',
+                            route: PrototypeRoutes.clientLogin,
+                            filled: true,
+                            scale: scale,
+                          ),
+                          SizedBox(height: 16 * scale),
+                          _LoginButton(
+                            label: '상담사 로그인',
+                            route: PrototypeRoutes.counselorLogin,
+                            filled: false,
+                            scale: scale,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-              Center(
-                child: Padding(
-                  padding: EdgeInsets.only(bottom: 18 * scale),
-                  child: Container(
-                    width: 134 * scale,
-                    height: 5 * scale,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(100),
-                      color: Colors.white,
+                Center(
+                  child: Padding(
+                    padding: EdgeInsets.only(bottom: 18 * scale),
+                    child: Container(
+                      width: 134 * scale,
+                      height: 5 * scale,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(100),
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ),
-              ),
               ],
             ),
           ),

@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../api/api_service.dart';
 import '../../navigation/prototype_routes.dart';
-import '../../widgets/device_clock.dart';
+import '../../navigation/app_navigation.dart';
 
 class CounselorsignupWidget extends StatefulWidget {
   const CounselorsignupWidget({super.key});
@@ -154,17 +153,7 @@ class _CounselorsignupWidgetState extends State<CounselorsignupWidget> {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(24, 12, 24, 8),
-      child: Row(
-        children: [
-          const DeviceClock(color: Color(0xFF1A2B49), fontSize: 15),
-          const Spacer(),
-          SvgPicture.asset('asset/images/vector3.svg', width: 20, height: 20),
-          const SizedBox(width: 6),
-          SvgPicture.asset('asset/images/vector4.svg', width: 20, height: 20),
-          const SizedBox(width: 6),
-          SvgPicture.asset('asset/images/vector5.svg', width: 28, height: 20),
-        ],
-      ),
+      child: AppNavigationBar(showBack: false),
     );
   }
 
@@ -192,16 +181,7 @@ class _CounselorsignupWidgetState extends State<CounselorsignupWidget> {
                       padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
                       child: Row(
                         children: [
-                          IconButton(
-                            onPressed: _isSaving
-                                ? null
-                                : () => Navigator.of(context).maybePop(),
-                            tooltip: '뒤로가기',
-                            icon: const Icon(
-                              Icons.arrow_back,
-                              color: Color(0xFF1A2B49),
-                            ),
-                          ),
+                          const AppBackButton(color: Color(0xFF1A2B49)),
                           const SizedBox(width: 4),
                           const Text(
                             '상담사 계정 생성',

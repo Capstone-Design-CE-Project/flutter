@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../navigation/app_navigation.dart';
+
 import '../navigation/prototype_routes.dart';
 
 class LoginFailureScreen extends StatelessWidget {
@@ -9,6 +11,13 @@ class LoginFailureScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFFCF9F5),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        foregroundColor: const Color(0xFF1A2B49),
+        elevation: 0,
+        leading: const AppBackButton(),
+        actions: const [AppLogoutButton()],
+      ),
       body: SafeArea(
         child: Center(
           child: Padding(
@@ -47,8 +56,9 @@ class LoginFailureScreen extends StatelessWidget {
                 SizedBox(
                   width: double.infinity,
                   child: FilledButton(
-                    onPressed: () => Navigator.of(context)
-                        .pushReplacementNamed(PrototypeRoutes.clientLogin),
+                    onPressed: () => Navigator.of(
+                      context,
+                    ).pushReplacementNamed(PrototypeRoutes.clientLogin),
                     style: FilledButton.styleFrom(
                       backgroundColor: const Color(0xFFFF6B53),
                       foregroundColor: const Color(0xFF1A2B49),
@@ -56,10 +66,7 @@ class LoginFailureScreen extends StatelessWidget {
                     ),
                     child: const Text(
                       '다시 로그인하기',
-                      style: TextStyle(
-                        fontFamily: 'GowunBatang',
-                        fontSize: 17,
-                      ),
+                      style: TextStyle(fontFamily: 'GowunBatang', fontSize: 17),
                     ),
                   ),
                 ),

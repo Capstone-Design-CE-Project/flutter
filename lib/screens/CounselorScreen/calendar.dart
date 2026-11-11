@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../api/api_service.dart';
 import '../../api/consultation_model.dart';
 import '../../navigation/prototype_routes.dart';
-import '../../widgets/device_clock.dart';
+import '../../navigation/app_navigation.dart';
 
 class CalendarV3 extends StatefulWidget {
   const CalendarV3({super.key});
@@ -28,6 +28,9 @@ class _CalendarV3State extends State<CalendarV3> {
     _month = now.month;
     _monthFuture = _loadMonth();
     _upcomingFuture = _apiService.getUpcomingAppointments(limit: 1);
+    // 달력 조회가 먼저 실패하면 아래 FutureBuilder가 아직 연결되지 않을 수 있다.
+    // 원래 Future의 오류는 유지하되 처리되지 않은 비동기 오류는 방지한다.
+    _upcomingFuture.ignore();
   }
 
   Future<CalendarMonthResponse> _loadMonth() {
@@ -63,17 +66,7 @@ class _CalendarV3State extends State<CalendarV3> {
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 12, 24, 8),
-              child: Row(
-                children: [
-                  const DeviceClock(color: Color(0xFF1A2B49)),
-                  const Spacer(),
-                  const Icon(Icons.signal_cellular_alt, size: 18),
-                  const SizedBox(width: 6),
-                  const Icon(Icons.wifi, size: 18),
-                  const SizedBox(width: 6),
-                  const Icon(Icons.battery_full, size: 20),
-                ],
-              ),
+              child: AppNavigationBar(),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),

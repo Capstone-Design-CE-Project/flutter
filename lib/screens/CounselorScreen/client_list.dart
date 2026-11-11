@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import '../../api/api_service.dart';
 import '../../api/consultation_model.dart';
 import '../../navigation/prototype_routes.dart';
-import '../../widgets/device_clock.dart';
+import '../../navigation/app_navigation.dart';
 
 class ClientList extends StatefulWidget {
   const ClientList({super.key});
@@ -81,9 +81,7 @@ class _ClientListState extends State<ClientList> {
 
     await _fetchClients(reset: true);
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(result)),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result)));
   }
 
   Future<void> _fetchClients({bool reset = false}) async {
@@ -140,17 +138,7 @@ class _ClientListState extends State<ClientList> {
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 12, 24, 8),
-              child: Row(
-                children: [
-                  const DeviceClock(color: Color(0xFF1A2B49), fontSize: 15),
-                  const Spacer(),
-                  const Icon(Icons.signal_cellular_alt, size: 18),
-                  const SizedBox(width: 6),
-                  const Icon(Icons.wifi, size: 18),
-                  const SizedBox(width: 6),
-                  const Icon(Icons.battery_full, size: 20),
-                ],
-              ),
+              child: AppNavigationBar(),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),

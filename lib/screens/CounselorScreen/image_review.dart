@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../navigation/app_navigation.dart';
+
 import '../../api/api_service.dart';
 import '../../navigation/prototype_routes.dart';
 import 'session_flow_payloads.dart';
@@ -28,6 +30,8 @@ class ImageReviewV3 extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFFCF9F5),
       appBar: AppBar(
+        leading: const AppBackButton(),
+        actions: const [AppLogoutButton()],
         backgroundColor: const Color(0xFFFCF9F5),
         foregroundColor: const Color(0xFF1A2B49),
         centerTitle: true,

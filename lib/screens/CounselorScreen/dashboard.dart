@@ -4,7 +4,7 @@ import '../../api/api_service.dart';
 import '../../api/consultation_model.dart';
 import '../../auth/auth_session.dart';
 import '../../navigation/prototype_routes.dart';
-import '../../widgets/device_clock.dart';
+import '../../navigation/app_navigation.dart';
 
 class DashboardWidget extends StatefulWidget {
   const DashboardWidget({required this.authSession, super.key});
@@ -29,33 +29,6 @@ class _DashboardWidgetState extends State<DashboardWidget> {
     setState(() => _dashboardFuture = _apiService.getDashboard());
   }
 
-  Future<void> _logout() async {
-    final shouldLogout = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('로그아웃'),
-        content: const Text('로그아웃하시겠습니까?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('취소'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('로그아웃'),
-          ),
-        ],
-      ),
-    );
-    if (shouldLogout != true || !mounted) return;
-
-    _apiService.clearAuthToken();
-    widget.authSession.signOut();
-    Navigator.of(
-      context,
-    ).pushNamedAndRemoveUntil(PrototypeRoutes.counselorLogin, (route) => false);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -65,17 +38,7 @@ class _DashboardWidgetState extends State<DashboardWidget> {
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 12, 24, 8),
-              child: Row(
-                children: [
-                  DeviceClock(color: const Color(0xFF1A2B49)),
-                  const Spacer(),
-                  const Icon(Icons.signal_cellular_alt, size: 18),
-                  const SizedBox(width: 6),
-                  const Icon(Icons.wifi, size: 18),
-                  const SizedBox(width: 6),
-                  const Icon(Icons.battery_full, size: 20),
-                ],
-              ),
+              child: AppNavigationBar(),
             ),
             Expanded(
               child: FutureBuilder<DashboardResponse>(
@@ -124,14 +87,7 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                                 color: Color(0xFFFF6B53),
                               ),
                             ),
-                            IconButton(
-                              onPressed: _logout,
-                              tooltip: '로그아웃',
-                              icon: const Icon(
-                                Icons.logout,
-                                color: Color(0xFF1A2B49),
-                              ),
-                            ),
+                            const SizedBox(width: 48),
                           ],
                         ),
                         const SizedBox(height: 20),

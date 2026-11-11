@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'api_exception.dart';
 import 'consultation_model.dart';
 
 class ApiService {
@@ -25,15 +26,22 @@ class ApiService {
               headers: {'Content-Type': 'application/json'},
             ),
           ) {
-    final token = _sharedToken;
-    if (token != null) {
-      _dio.options.headers['Authorization'] = 'Bearer $token';
-    }
+    _dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) {
+          // 이미 만들어진 화면도 로그인/로그아웃 후 최신 토큰을 사용한다.
+          options.headers.remove('Authorization');
+          final token = _sharedToken;
+          if (token != null) options.headers['Authorization'] = 'Bearer $token';
+          handler.next(options);
+        },
+      ),
+    );
   }
 
   final Dio _dio;
 
-  // ??? ??? ?? ApiService ????? ????.
+  // 모든 화면의 API 요청이 공유하는 현재 로그인 토큰.
   static String? _sharedToken;
 
   void setAuthToken(String token) {
@@ -124,7 +132,7 @@ class ApiService {
       );
       return _saveToken(_asMap(response.data));
     } catch (e) {
-      throw Exception('상담사 로그인 실패: $e');
+      throw ApiException.fromError(e, fallback: '상담사 로그인에 실패했습니다.');
     }
   }
 
@@ -139,7 +147,7 @@ class ApiService {
       );
       return _saveToken(_asMap(response.data));
     } catch (e) {
-      throw Exception('어르신 로그인 실패: $e');
+      throw ApiException.fromError(e, fallback: '어르신 로그인에 실패했습니다.');
     }
   }
 
@@ -165,7 +173,7 @@ class ApiService {
       );
       return _asMap(response.data);
     } catch (e) {
-      throw Exception('상담사 생성 실패: $e');
+      throw ApiException.fromError(e, fallback: '상담사 등록에 실패했습니다.');
     }
   }
 
@@ -187,7 +195,7 @@ class ApiService {
       );
       return ClientListResponse.fromJson(_asMap(response.data));
     } catch (e) {
-      throw Exception('내담자 목록 조회 실패: $e');
+      throw ApiException.fromError(e, fallback: '내담자 목록을 불러오지 못했습니다.');
     }
   }
 
@@ -196,7 +204,7 @@ class ApiService {
       final response = await _get('/clients/$clientId');
       return ClientDetail.fromJson(_asMap(response.data));
     } catch (e) {
-      throw Exception('내담자 상세 조회 실패: $e');
+      throw ApiException.fromError(e, fallback: '내담자 정보를 불러오지 못했습니다.');
     }
   }
 
@@ -228,7 +236,7 @@ class ApiService {
       );
       return ClientDetail.fromJson(_asMap(response.data));
     } catch (e) {
-      throw Exception('내담자 생성 실패: $e');
+      throw ApiException.fromError(e, fallback: '내담자 등록에 실패했습니다.');
     }
   }
 
@@ -263,7 +271,7 @@ class ApiService {
       );
       return ClientDetail.fromJson(_asMap(response.data));
     } catch (e) {
-      throw Exception('내담자 수정 실패: $e');
+      throw ApiException.fromError(e, fallback: '내담자 정보 수정에 실패했습니다.');
     }
   }
 
@@ -289,7 +297,7 @@ class ApiService {
       );
       return AppointmentOut.fromJson(_asMap(response.data));
     } catch (e) {
-      throw Exception('상담 일정 생성 실패: $e');
+      throw ApiException.fromError(e, fallback: '상담 일정 등록에 실패했습니다.');
     }
   }
 
@@ -317,7 +325,7 @@ class ApiService {
       );
       return AppointmentOut.fromJson(_asMap(response.data));
     } catch (e) {
-      throw Exception('상담 일정 수정 실패: $e');
+      throw ApiException.fromError(e, fallback: '상담 일정 수정에 실패했습니다.');
     }
   }
 
@@ -332,7 +340,7 @@ class ApiService {
       );
       return CalendarMonthResponse.fromJson(_asMap(response.data));
     } catch (e) {
-      throw Exception('캘린더 조회 실패: $e');
+      throw ApiException.fromError(e, fallback: '캘린더를 불러오지 못했습니다.');
     }
   }
 
@@ -347,7 +355,7 @@ class ApiService {
       );
       return _parseList<AppointmentOut>(response.data, AppointmentOut.fromJson);
     } catch (e) {
-      throw Exception('예정된 면담 조회 실패: $e');
+      throw ApiException.fromError(e, fallback: '예정된 면담을 불러오지 못했습니다.');
     }
   }
 
@@ -367,7 +375,7 @@ class ApiService {
       );
       return SessionBrief.fromJson(_asMap(response.data));
     } catch (e) {
-      throw Exception('상담 세션 생성 실패: $e');
+      throw ApiException.fromError(e, fallback: '상담 세션 생성에 실패했습니다.');
     }
   }
 
@@ -389,7 +397,7 @@ class ApiService {
       );
       return SessionListResponse.fromJson(_asMap(response.data));
     } catch (e) {
-      throw Exception('세션 목록 조회 실패: $e');
+      throw ApiException.fromError(e, fallback: '상담 기록을 불러오지 못했습니다.');
     }
   }
 
@@ -398,7 +406,7 @@ class ApiService {
       final response = await _get('/sessions/$sessionId');
       return SessionDetail.fromJson(_asMap(response.data));
     } catch (e) {
-      throw Exception('세션 상세 조회 실패: $e');
+      throw ApiException.fromError(e, fallback: '상담 상세 정보를 불러오지 못했습니다.');
     }
   }
 
@@ -415,7 +423,7 @@ class ApiService {
       );
       return SummaryResponse.fromJson(_asMap(response.data));
     } catch (e) {
-      throw Exception('세션 요약 수정 실패: $e');
+      throw ApiException.fromError(e, fallback: '상담 요약 수정에 실패했습니다.');
     }
   }
 
@@ -432,7 +440,7 @@ class ApiService {
       );
       return SessionCompleteResponse.fromJson(_asMap(response.data));
     } catch (e) {
-      throw Exception('세션 완료 처리 실패: $e');
+      throw ApiException.fromError(e, fallback: '상담 완료 처리에 실패했습니다.');
     }
   }
 
@@ -456,7 +464,7 @@ class ApiService {
       );
       return RecordingUploadResponse.fromJson(_asMap(response.data));
     } catch (e) {
-      throw Exception('음성 업로드 및 STT 처리 실패: $e');
+      throw ApiException.fromError(e, fallback: '음성 업로드 및 STT 처리에 실패했습니다.');
     }
   }
 
@@ -477,7 +485,7 @@ class ApiService {
       );
       return RecordingUploadResponse.fromJson(_asMap(response.data));
     } catch (e) {
-      throw Exception('음성 업로드 및 STT 처리 실패: $e');
+      throw ApiException.fromError(e, fallback: '음성 업로드 및 STT 처리에 실패했습니다.');
     }
   }
 
@@ -496,7 +504,7 @@ class ApiService {
       );
       return AlbumOut.fromJson(_asMap(response.data));
     } catch (e) {
-      throw Exception('이미지 생성 실패: $e');
+      throw ApiException.fromError(e, fallback: '이미지 생성에 실패했습니다.');
     }
   }
 
@@ -505,7 +513,7 @@ class ApiService {
       final response = await _get('/sessions/$sessionId/images');
       return _parseList<AlbumOut>(response.data, AlbumOut.fromJson);
     } catch (e) {
-      throw Exception('앨범 목록 조회 실패: $e');
+      throw ApiException.fromError(e, fallback: '앨범을 불러오지 못했습니다.');
     }
   }
 
@@ -514,7 +522,7 @@ class ApiService {
       final response = await _get('/me/home');
       return ClientHomeResponse.fromJson(_asMap(response.data));
     } catch (e) {
-      throw Exception('어르신 홈 조회 실패: $e');
+      throw ApiException.fromError(e, fallback: '홈 화면을 불러오지 못했습니다.');
     }
   }
 
@@ -529,7 +537,7 @@ class ApiService {
       );
       return AlbumListResponse.fromJson(_asMap(response.data));
     } catch (e) {
-      throw Exception('앨범 목록 조회 실패: $e');
+      throw ApiException.fromError(e, fallback: '앨범을 불러오지 못했습니다.');
     }
   }
 
@@ -538,7 +546,7 @@ class ApiService {
       final response = await _get('/dashboard');
       return DashboardResponse.fromJson(_asMap(response.data));
     } catch (e) {
-      throw Exception('대시보드 조회 실패: $e');
+      throw ApiException.fromError(e, fallback: '대시보드를 불러오지 못했습니다.');
     }
   }
 
@@ -553,7 +561,7 @@ class ApiService {
       );
       return NotificationListResponse.fromJson(_asMap(response.data));
     } catch (e) {
-      throw Exception('알림 목록 조회 실패: $e');
+      throw ApiException.fromError(e, fallback: '알림을 불러오지 못했습니다.');
     }
   }
 
@@ -562,7 +570,7 @@ class ApiService {
       final response = await _get('/me/settings');
       return SettingOut.fromJson(_asMap(response.data));
     } catch (e) {
-      throw Exception('설정 조회 실패: $e');
+      throw ApiException.fromError(e, fallback: '설정을 불러오지 못했습니다.');
     }
   }
 
@@ -584,7 +592,7 @@ class ApiService {
       );
       return SettingOut.fromJson(_asMap(response.data));
     } catch (e) {
-      throw Exception('설정 수정 실패: $e');
+      throw ApiException.fromError(e, fallback: '설정 저장에 실패했습니다.');
     }
   }
 
@@ -593,7 +601,7 @@ class ApiService {
       final response = await _post('/sessions/$sessionId/summary');
       return SummaryResponse.fromJson(_asMap(response.data));
     } catch (e) {
-      throw Exception('요약 생성 실패: $e');
+      throw ApiException.fromError(e, fallback: '상담 요약 생성에 실패했습니다.');
     }
   }
 
@@ -602,7 +610,7 @@ class ApiService {
       final response = await _get('/me/sessions/$sessionId/summary');
       return ClientSummaryResponse.fromJson(_asMap(response.data));
     } catch (e) {
-      throw Exception('요약 조회 실패: $e');
+      throw ApiException.fromError(e, fallback: '상담 요약을 불러오지 못했습니다.');
     }
   }
 
@@ -621,7 +629,7 @@ class ApiService {
       if (sessionId is String) return int.tryParse(sessionId);
       return null;
     } catch (e) {
-      throw Exception('최근 상담 기록 조회 실패: $e');
+      throw ApiException.fromError(e, fallback: '최근 상담 기록을 불러오지 못했습니다.');
     }
   }
 
@@ -630,7 +638,7 @@ class ApiService {
       final response = await _get('/sessions/$sessionId/transcript');
       return TranscriptResponse.fromJson(_asMap(response.data));
     } catch (e) {
-      throw Exception('대화 기록 조회 실패: $e');
+      throw ApiException.fromError(e, fallback: '대화 기록을 불러오지 못했습니다.');
     }
   }
 
@@ -648,7 +656,7 @@ class ApiService {
                 (response.data as Map<String, dynamic>)['id']
           : response.data;
     } catch (e) {
-      throw Exception('레거시 세션 생성 실패: $e');
+      throw ApiException.fromError(e, fallback: '상담 세션 생성에 실패했습니다.');
     }
   }
 
@@ -672,7 +680,7 @@ class ApiService {
       );
       return _asMap(response.data);
     } catch (e) {
-      throw Exception('레거시 파이프라인 실행 실패: $e');
+      throw ApiException.fromError(e, fallback: '상담 분석 처리에 실패했습니다.');
     }
   }
 
@@ -681,7 +689,7 @@ class ApiService {
       final response = await _dio.get('/pipeline/album/$sessionId');
       return _parseList<AlbumImage>(response.data, AlbumImage.fromJson);
     } catch (e) {
-      throw Exception('레거시 앨범 조회 실패: $e');
+      throw ApiException.fromError(e, fallback: '앨범을 불러오지 못했습니다.');
     }
   }
 }

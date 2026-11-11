@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../api/api_service.dart';
 import '../../api/consultation_model.dart';
 import '../../navigation/prototype_routes.dart';
-import '../../widgets/device_clock.dart';
+import '../../navigation/app_navigation.dart';
 
 class SessionInfoInputV3 extends StatefulWidget {
   const SessionInfoInputV3({super.key, this.clientId});
@@ -69,28 +69,27 @@ class _SessionInfoInputV3State extends State<SessionInfoInputV3> {
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 12, 24, 8),
+              child: AppNavigationBar(showBack: false),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 children: [
-                  const DeviceClock(color: Color(0xFF1A2B49), fontSize: 15),
-                  const Spacer(),
-                  const Icon(Icons.signal_cellular_alt, size: 18),
-                  const SizedBox(width: 6),
-                  const Icon(Icons.wifi, size: 18),
-                  const SizedBox(width: 6),
-                  const Icon(Icons.battery_full, size: 20),
+                  const AppBackButton(color: Color(0xFF1A2B49)),
+                  const Expanded(
+                    child: Text(
+                      '상담 대기',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Color(0xFF1A2B49),
+                        fontFamily: 'GowunBatang',
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 48),
                 ],
-              ),
-            ),
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 12),
-              child: Text(
-                '상담 대기',
-                style: TextStyle(
-                  color: Color(0xFF1A2B49),
-                  fontFamily: 'GowunBatang',
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                ),
               ),
             ),
             Expanded(

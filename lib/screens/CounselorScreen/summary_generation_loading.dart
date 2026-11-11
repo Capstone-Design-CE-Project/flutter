@@ -4,6 +4,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
+import '../../navigation/app_navigation.dart';
+
 import '../../api/api_service.dart';
 import '../../navigation/prototype_routes.dart';
 import 'session_flow_payloads.dart';
@@ -87,6 +89,7 @@ class _SummaryGenerationLoadingState extends State<SummaryGenerationLoading> {
         if (sessionId <= 0) {
           throw StateError('상담 세션을 생성하지 못했습니다.');
         }
+        if (!mounted) return;
         _sessionId = sessionId;
       }
 
@@ -97,6 +100,7 @@ class _SummaryGenerationLoadingState extends State<SummaryGenerationLoading> {
             request.recordingPath,
             options: Options(responseType: ResponseType.bytes),
           );
+          if (!mounted) return;
           final audioBytes = response.data;
           if (audioBytes == null || audioBytes.isEmpty) {
             throw StateError('녹음 파일에서 데이터를 읽지 못했습니다.');
@@ -114,6 +118,7 @@ class _SummaryGenerationLoadingState extends State<SummaryGenerationLoading> {
             durationSeconds: request.durationSeconds,
           );
         }
+        if (!mounted) return;
         _recordingUploaded = true;
       }
 
@@ -151,6 +156,8 @@ class _SummaryGenerationLoadingState extends State<SummaryGenerationLoading> {
     return Scaffold(
       backgroundColor: const Color(0xFFFCF9F5),
       appBar: AppBar(
+        leading: const AppBackButton(),
+        actions: const [AppLogoutButton()],
         backgroundColor: const Color(0xFFFCF9F5),
         foregroundColor: const Color(0xFF1A2B49),
         centerTitle: true,
